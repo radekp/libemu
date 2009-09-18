@@ -1,4 +1,6 @@
 # Settings via env variables
+#  CC          - Your C compiler
+#  AR          - Your AR archiver
 #  CFLAGS      - Your CFLAGS (we add a few we find essential)
 #  SDL_INCLUDE - Where to find SDL includes
 #  LIBS        - Which libs to include (SDL.dll for windows)
@@ -45,7 +47,7 @@ libemu$(LIB_EXTENSION): $(SOURCE)
 
 libemu.a: $(SOURCE)
 	@echo "[Static] $@"
-	$(Q)ar rcs $@ $(SOURCE)
+	$(Q)$(AR) rcs $@ $(SOURCE)
 
 clean:
 	@echo "[Cleaning] libemu"

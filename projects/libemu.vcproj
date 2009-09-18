@@ -150,71 +150,71 @@
 			Name="source"
 			>
 			<File
-				RelativePath="..\src\libemu\bios.c"
+				RelativePath="..\src\bios.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\bios_asm.c"
+				RelativePath="..\src\bios_asm.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\call.c"
+				RelativePath="..\src\call.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int10.c"
+				RelativePath="..\src\int10.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int13.c"
+				RelativePath="..\src\int13.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int15.c"
+				RelativePath="..\src\int15.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int16.c"
+				RelativePath="..\src\int16.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int1a.c"
+				RelativePath="..\src\int1a.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int21.c"
+				RelativePath="..\src\int21.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int2f.c"
+				RelativePath="..\src\int2f.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int33.c"
+				RelativePath="..\src\int33.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu.c"
+				RelativePath="..\src\libemu.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\math.c"
+				RelativePath="..\src\math.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\mov.c"
+				RelativePath="..\src\mov.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\pic.c"
+				RelativePath="..\src\pic.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\register.c"
+				RelativePath="..\src\register.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\timer.c"
+				RelativePath="..\src\timer.c"
 				>
 			</File>
 		</Filter>
@@ -222,71 +222,71 @@
 			Name="headers"
 			>
 			<File
-				RelativePath="..\src\libemu\bios.h"
+				RelativePath="..\src\bios.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int10.h"
+				RelativePath="..\src\int10.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int13.h"
+				RelativePath="..\src\int13.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int15.h"
+				RelativePath="..\src\int15.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int16.h"
+				RelativePath="..\src\int16.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int1a.h"
+				RelativePath="..\src\int1a.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int21.h"
+				RelativePath="..\src\int21.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int2f.h"
+				RelativePath="..\src\int2f.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\int33.h"
+				RelativePath="..\src\int33.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu.h"
+				RelativePath="..\src\libemu.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu_bios.h"
+				RelativePath="..\src\libemu_bios.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu_call.h"
+				RelativePath="..\src\libemu_call.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu_math.h"
+				RelativePath="..\src\libemu_math.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu_mov.h"
+				RelativePath="..\src\libemu_mov.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\libemu_register.h"
+				RelativePath="..\src\libemu_register.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\pic.h"
+				RelativePath="..\src\pic.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\libemu\timer.h"
+				RelativePath="..\src\timer.h"
 				>
 			</File>
 			<File
