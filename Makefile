@@ -1,9 +1,10 @@
 # Settings via env variables
+#  CFLAGS      - Your CFLAGS (we add a few we find essential)
 #  SDL_INCLUDE - Where to find SDL includes
-#  LIBS - Which libs to include (SDL.dll for windows)
+#  LIBS        - Which libs to include (SDL.dll for windows)
 #
 # Settings via parameters
-#  WIN32:=1 - To compile a .dll
+#  WIN32:=1    - To compile a .dll
 
 CFLAGS := $(CFLAGS) -shared
 ifdef WIN32
@@ -19,7 +20,7 @@ ifndef LIBS
 LIBS :=
 endif
 
-CFLAGS += -g -Wall -Wextra -Wno-unused-parameter
+CFLAGS := $(CFLAGS) -g -Wall -Wextra -Wno-unused-parameter
 
 SOURCE := $(shell ls src/*.c src/*/*.c 2>/dev/null)
 SOURCE := $(SOURCE:%.c=objs/%.o)
