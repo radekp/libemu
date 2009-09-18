@@ -1,3 +1,4 @@
+/* $Id$ */
 
 extern void timer_init();
 extern void timer_uninit();

@@ -1,3 +1,5 @@
+/* $Id$ */
+
 #include <SDL.h>
 #ifndef WIN32
 #include <ncurses.h>

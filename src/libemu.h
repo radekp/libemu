@@ -1,3 +1,5 @@
+/* $Id$ */
+
 #ifndef LIBEMU_H
 #define LIBEMU_H
 

@@ -1,3 +1,4 @@
+/* $Id$ */
 
 extern void emu_int10();
 extern void emu_int10_gfx(int mode);

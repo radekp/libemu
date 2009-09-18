@@ -1,3 +1,4 @@
+/* $Id$ */
 
 extern void pic_init();
 extern void pic_uninit();

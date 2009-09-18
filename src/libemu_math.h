@@ -1,3 +1,4 @@
+/* $Id$ */
 
 extern void emu_boundb(uint8 reg, uint8 *bound);
 extern void emu_boundw(uint16 reg, uint16 *bound);
