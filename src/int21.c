@@ -228,6 +228,13 @@ void emu_int21()
 			/* Find the next open slot for the file number */
 			int i;
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
+			if (i == 20) {
+				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
+				emu_ax.x = 0x04; // TOO MANY OPEN FILES
+				emu_flags.cf = 1;
+				return;
+			}
+
 			_int21_filemap[i] = fileno(fp);
 			emu_ax.x = i;
 		} return;
@@ -255,6 +262,13 @@ void emu_int21()
 			/* Find the next open slot for the file number */
 			int i;
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
+			if (i == 20) {
+				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
+				emu_ax.x = 0x04; // TOO MANY OPEN FILES
+				emu_flags.cf = 1;
+				return;
+			}
+
 			_int21_filemap[i] = fileno(fp);
 			emu_ax.x = i;
 		} return;
@@ -263,6 +277,12 @@ void emu_int21()
 		{          /* Return: */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3E ] CLOSE FILE '%d'\n", emu_bx.x);
 			emu_flags.cf = 0;
+
+			if (emu_bx.x < 5 || emu_bx.x >= 20) {
+				emu_ax.x = 0x06; // INVALID HANDLE
+				emu_flags.cf = 1;
+				return;
+			}
 
 			close(_int21_filemap[emu_bx.x]);
 			_int21_filemap[emu_bx.x] = 0;
@@ -273,6 +293,12 @@ void emu_int21()
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3F ] READ FILE '%d' for %d bytes to %04X:%04X\n", emu_bx.x, emu_cx.x, emu_ds, emu_dx.x);
 			emu_flags.cf = 0;
 			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx.x, 0);
+
+			if (emu_bx.x < 5 || emu_bx.x >= 20) {
+				emu_ax.x = 0x06; // INVALID HANDLE
+				emu_flags.cf = 1;
+				return;
+			}
 
 			int res = read(_int21_filemap[emu_bx.x], buf, emu_cx.x);
 
@@ -289,6 +315,12 @@ void emu_int21()
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:40 ] WRITE FILE '%d' for %d bytes from %04X:%04X\n", emu_bx.x, emu_cx.x, emu_ds, emu_dx.x);
 			emu_flags.cf = 0;
 			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx.x, 0);
+
+			if (emu_bx.x < 5 || emu_bx.x >= 20) {
+				emu_ax.x = 0x06; // INVALID HANDLE
+				emu_flags.cf = 1;
+				return;
+			}
 
 			int res = write(_int21_filemap[emu_bx.x], buf, emu_cx.x);
 
@@ -317,6 +349,12 @@ void emu_int21()
 			emu_flags.cf = 0;
 
 			int pos = (int32)((emu_cx.x << 16) + emu_dx.x);
+
+			if (emu_bx.x < 5 || emu_bx.x >= 20) {
+				emu_ax.x = 0x06; // INVALID HANDLE
+				emu_flags.cf = 1;
+				return;
+			}
 
 			int res = lseek(_int21_filemap[emu_bx.x], pos, (emu_ax.l == 0) ? SEEK_SET : ((emu_ax.l == 1) ? SEEK_CUR : SEEK_END));
 
