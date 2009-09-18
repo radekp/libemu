@@ -184,8 +184,11 @@ void emu_hard_call(uint16 new_cs, uint16 new_ip)
 
 	uint16 ret_cs = emu_cs;
 	uint16 ret_ip = emu_ip;
+
+	emu_cs = 0x0;
+	emu_ip = 0x0;
 	emu_push(emu_cs);
-	emu_push(ret_ip);
+	emu_push(emu_ip);
 
 	emu_hard_jump(new_cs, new_ip);
 
@@ -213,6 +216,9 @@ void emu_hard_int(uint8 interrupt)
 
 	uint16 ret_cs = emu_cs;
 	uint16 ret_ip = emu_ip;
+
+	emu_cs = 0x0;
+	emu_ip = 0x0;
 	emu_pushf();
 	emu_push(emu_cs);
 	emu_push(emu_ip);
