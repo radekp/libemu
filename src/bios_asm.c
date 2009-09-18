@@ -274,9 +274,6 @@ void emu_syscall(uint8 value) {
 	/* Enable interrupt again, and push new flags on the stack, so popf() reads the new values */
 	emu_flags.inf = 1;
 	emu_get_memory16(emu_ss, emu_sp, 4) = emu_flags.all;
-
-	/* Sleep a bit to avoid 100% CPU and nasty other side-effects */
-	usleep(1);
 }
 
 void emu_halt()
