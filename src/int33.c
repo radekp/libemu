@@ -13,6 +13,11 @@ typedef struct Mouse {
 	int16 dx;
 	int16 dy;
 
+	uint16 min_x;
+	uint16 min_y;
+	uint16 max_x;
+	uint16 max_y;
+
 	uint8 left_button;
 	uint8 right_button;
 
@@ -45,7 +50,7 @@ void emu_mouse_callback(uint8 reason)
 	uint16 old_si = emu_si;
 
 	emu_ax.x = reason;
-	emu_bx.x = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2: 0x0);
+	emu_bx.x = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2 : 0x0);
 	emu_cx.x = emu_mouse[0].pos_x;
 	emu_dx.x = emu_mouse[0].pos_y;
 	emu_di   = emu_mouse[0].dx;
@@ -66,6 +71,11 @@ void emu_mouse_callback(uint8 reason)
 
 void emu_mouse_change_position(uint16 x, uint16 y)
 {
+	if (emu_mouse[0].min_x != 0 && x < emu_mouse[0].min_x) x = emu_mouse[0].min_x;
+	if (emu_mouse[0].max_x != 0 && x > emu_mouse[0].max_x) x = emu_mouse[0].max_x;
+	if (emu_mouse[0].min_y != 0 && y < emu_mouse[0].min_y) y = emu_mouse[0].min_y;
+	if (emu_mouse[0].max_y != 0 && y > emu_mouse[0].max_y) y = emu_mouse[0].max_y;
+
 	emu_mouse[0].dx = x - emu_mouse[0].pos_x;
 	emu_mouse[0].dy = y - emu_mouse[0].pos_y;
 	emu_mouse[0].pos_x = x;
@@ -116,12 +126,18 @@ void emu_int33()
 
 		case 0x07: /* SET MOUSE HORIZONTAL MIN/MAX, CX -> minimum, DX ->maximum */
 		{          /* Return: */
-			/* We don't care */
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:07 ] SET MOUSE HORIZONTAL MIN/MAX to %d - %d\n", emu_cx.x, emu_dx.x);
+
+			emu_mouse[0].min_x = emu_cx.x;
+			emu_mouse[0].max_x = emu_dx.x;
 		} return;
 
 		case 0x08: /* SET MOUSE VERTICAL MIN/MAX, CX -> minimum, DX -> maximum */
 		{          /* Return: */
-			/* We don't care */
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:08 ] SET MOUSE VERTICAL MIN/MAX to %d - %d\n", emu_cx.x, emu_dx.x);
+
+			emu_mouse[0].min_y = emu_cx.x;
+			emu_mouse[0].max_y = emu_dx.x;
 		} return;
 
 		case 0x0C: /* SET USER CALLBACK, CX -> mask, ES:DX -> callback */
