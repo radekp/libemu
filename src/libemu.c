@@ -29,6 +29,11 @@ void emu_make_crash_dump()
 	fprintf(stderr, " Creating crash-dump ...\n");
 
 	FILE *fo = fopen("memory/crash.bin", "wb");
+	if (fo == NULL) {
+		fprintf(stderr, "ERROR: failed to open memory/crash.bin\n");
+		fprintf(stderr, " Crashlog not created!\n");
+		return;
+	}
 
 	{
 		uint8 values[5];
