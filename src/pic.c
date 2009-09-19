@@ -6,6 +6,7 @@
 #	include <sys/time.h>
 #endif /* _MSC_VER */
 #if defined(WIN32)
+#	define _WIN32_WINNT 0x0500
 #	include <windows.h>
 #else
 #	include <signal.h>
@@ -20,10 +21,8 @@ typedef struct PICNode {
 } PICNode;
 
 #if defined(WIN32)
-static HANDLE _timer_thread = NULL;
-static HANDLE _timer_event  = NULL;
 static HANDLE _timer_main   = NULL;
-static int _timer_in_thread = 0;
+static HANDLE _timer_handle = NULL;
 static int _timer;
 #else
 static struct itimerval _timer;
@@ -74,14 +73,10 @@ void _pic_run()
 }
 
 #if defined(WIN32)
-void pic_windows_thread(void *arg) {
-	while (WaitForSingleObject(_timer_event, _timer) == WAIT_TIMEOUT) {
-		_timer_in_thread = 1;
-		SuspendThread(_timer_main);
-		_pic_run();
-		ResumeThread(_timer_main);
-		_timer_in_thread = 0;
-	}
+void CALLBACK pic_windows_tick(LPVOID arg, BOOLEAN TimerOrWaitFired) {
+	SuspendThread(_timer_main);
+	_pic_run();
+	ResumeThread(_timer_main);
 }
 #endif /* WIN32 */
 
@@ -92,6 +87,7 @@ void pic_init()
 
 #if defined(WIN32)
 	_timer = _pic_speed / 1000;
+	DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &_timer_main, 0, FALSE, DUPLICATE_SAME_ACCESS);
 #else
 	_timer.it_value.tv_sec = 0;
 	_timer.it_value.tv_usec = _pic_speed;
@@ -106,6 +102,9 @@ void pic_init()
 void pic_uninit()
 {
 	pic_suspend();
+#if defined(WIN32)
+	CloseHandle(_timer_main);
+#endif
 }
 
 void pic_timer_add(void (*callback)(), uint32 usec_delay)
@@ -148,9 +147,7 @@ void pic_timer_del(void (*callback)())
 void pic_suspend()
 {
 #if defined(WIN32)
-	if (_timer_thread != NULL) {
-		if (_timer_in_thread == 0) SuspendThread(_timer_thread);
-	}
+	DeleteTimerQueueTimer(NULL, _timer_handle, NULL);
 #else
 	setitimer(ITIMER_REAL, NULL, NULL);
 #endif /* WIN32 */
@@ -159,13 +156,7 @@ void pic_suspend()
 void pic_resume()
 {
 #if defined(WIN32)
-	if (_timer_thread == NULL) {
-		DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), &_timer_main, 0, FALSE, DUPLICATE_SAME_ACCESS);
-		_timer_event  = CreateEvent(NULL, FALSE, FALSE, NULL);
-		_timer_thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)pic_windows_thread, NULL, 0, NULL);
-	} else {
-		if (_timer_in_thread == 0) ResumeThread(_timer_thread);
-	}
+	CreateTimerQueueTimer(&_timer_handle, NULL, pic_windows_tick, NULL, _timer, _timer, WT_EXECUTEINTIMERTHREAD);
 #else
 	setitimer(ITIMER_REAL, &_timer, NULL);
 #endif /* WIN32 */
