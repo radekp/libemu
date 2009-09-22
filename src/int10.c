@@ -613,43 +613,45 @@ void emu_int10_update()
 		extern void emu_mouse_change_button(uint8 left, uint8 press);
 		SDL_Event event;
 
-		while (SDL_PollEvent(&event)) {
-			uint8 keyup = 1;
-			switch (event.type) {
-				case SDL_QUIT: {
-					fprintf(stderr, "[EMU] SDL window closed\n");
-					bios_uninit(0);
-				} break;
+		if (emu_flags.inf) {
+			while (SDL_PollEvent(&event)) {
+				uint8 keyup = 1;
+				switch (event.type) {
+					case SDL_QUIT: {
+						fprintf(stderr, "[EMU] SDL window closed\n");
+						bios_uninit(0);
+					} break;
 
-				case SDL_MOUSEMOTION:
-					emu_mouse_change_position(event.motion.x, event.motion.y / 2);
-					break;
+					case SDL_MOUSEMOTION:
+						emu_mouse_change_position(event.motion.x, event.motion.y / 2);
+						break;
 
-				case SDL_MOUSEBUTTONDOWN:
-					emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 1);
-					break;
-				case SDL_MOUSEBUTTONUP:
-					emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 0);
-					break;
+					case SDL_MOUSEBUTTONDOWN:
+						emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 1);
+						break;
+					case SDL_MOUSEBUTTONUP:
+						emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 0);
+						break;
 
-				case SDL_KEYDOWN:
-					keyup = 0;
-					/* Fall Through */
-				case SDL_KEYUP:
-				{
-					if (_int9_lastkey == 0x63 && event.key.keysym.sym == 0x132) {
-						fprintf(stderr, "[EMU] CTRL+C pressed\n");
-						bios_uninit(1);
-					}
-					if (event.key.keysym.sym >= sizeof(_SDL_keymap)) continue;
-					if (_SDL_keymap[event.key.keysym.sym] == 0) {
-						fprintf(stderr, "[EMU] ERROR: unhandled key %X\n", event.key.keysym.sym);
-						continue;
-					}
-					if (event.key.keysym.sym > 0xFF) _int9_keyadd(0xE0);
-					_int9_keyadd(_SDL_keymap[event.key.keysym.sym] | (keyup ? 0x80 : 0x0));
-					_int9_lastkey = event.key.keysym.sym;
-				} break;
+					case SDL_KEYDOWN:
+						keyup = 0;
+						/* Fall Through */
+					case SDL_KEYUP:
+					{
+						if (_int9_lastkey == 0x63 && event.key.keysym.sym == 0x132) {
+							fprintf(stderr, "[EMU] CTRL+C pressed\n");
+							bios_uninit(1);
+						}
+						if (event.key.keysym.sym >= sizeof(_SDL_keymap)) continue;
+						if (_SDL_keymap[event.key.keysym.sym] == 0) {
+							fprintf(stderr, "[EMU] ERROR: unhandled key %X\n", event.key.keysym.sym);
+							continue;
+						}
+						if (event.key.keysym.sym > 0xFF) _int9_keyadd(0xE0);
+						_int9_keyadd(_SDL_keymap[event.key.keysym.sym] | (keyup ? 0x80 : 0x0));
+						_int9_lastkey = event.key.keysym.sym;
+					} break;
+				}
 			}
 		}
 
