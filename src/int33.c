@@ -120,8 +120,6 @@ void emu_int33()
 
 			emu_mouse[0].pos_x = emu_cx.x;
 			emu_mouse[0].pos_y = emu_dx.x;
-			emu_mouse[0].left_button = 0;
-			emu_mouse[0].right_button = 0;
 		} return;
 
 		case 0x07: /* SET MOUSE HORIZONTAL MIN/MAX, CX -> minimum, DX ->maximum */
