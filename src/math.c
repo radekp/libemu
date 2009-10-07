@@ -345,24 +345,24 @@ void emu_notws(uint16 *dest, int8 val2) { emu_notw(dest, val2); }
 /* MUL */
 
 void emu_mulb(uint8 *dest, uint8 val2) {
-	uint16 res = emu_ax.l * val2;
+	uint16 res = emu_al * val2;
 
-	emu_ax.l = res & 0xFF;
-	emu_ax.h = res >> 8;
+	emu_al = res & 0xFF;
+	emu_ah = res >> 8;
 
-	emu_flags.zf = (emu_ax.l == 0) ? 1 : 0;
-	emu_flags.cf = (emu_ax.h == 0) ? 0 : 1;
-	emu_flags.of = (emu_ax.h == 0) ? 0 : 1;
+	emu_flags.zf = (emu_al == 0) ? 1 : 0;
+	emu_flags.cf = (emu_ah == 0) ? 0 : 1;
+	emu_flags.of = (emu_ah == 0) ? 0 : 1;
 }
 void emu_mulw(uint16 *dest, uint16 val2) {
-	uint32 res = emu_ax.x * val2;
+	uint32 res = emu_ax * val2;
 
-	emu_ax.x = res & 0xFFFF;
-	emu_dx.x = res >> 16;
+	emu_ax = res & 0xFFFF;
+	emu_dx = res >> 16;
 
-	emu_flags.zf = (emu_ax.x == 0) ? 1 : 0;
-	emu_flags.cf = (emu_dx.x == 0) ? 0 : 1;
-	emu_flags.of = (emu_dx.x == 0) ? 0 : 1;
+	emu_flags.zf = (emu_ax == 0) ? 1 : 0;
+	emu_flags.cf = (emu_dx == 0) ? 0 : 1;
+	emu_flags.of = (emu_dx == 0) ? 0 : 1;
 }
 void emu_mulws(uint16 *dest, int8 src) { emu_mulw(dest, src); }
 
@@ -385,56 +385,56 @@ void emu_imulw(uint16 *dest, int16 val1, int16 val2) {
 }
 void emu_imulws(uint16 *dest, int16 val1, int8 val2) { emu_imulw(dest, val1, val2); }
 void emu_imulub(uint8 *dest, int8 val) {
-	int16 res = (int8)emu_ax.l * val;
+	int16 res = (int8)emu_al * val;
 
-	emu_ax.l = res;
-	emu_ax.h = res >> 8;
+	emu_al = res;
+	emu_ah = res >> 8;
 
 	/* It depends on how you define 'sign extended' .. but this keeps it DosBox compatible */
-	emu_flags.cf = ((emu_ax.h == 0xFF && (emu_ax.l & 0x80)) || (emu_ax.h == 0x00 && !(emu_ax.l & 0x80))) ? 0 : 1;
-	emu_flags.of = ((emu_ax.h == 0xFF && (emu_ax.l & 0x80)) || (emu_ax.h == 0x00 && !(emu_ax.l & 0x80))) ? 0 : 1;
-//	emu_flags.cf = (emu_ax.h == 0) ? 1 : 0;
-//	emu_flags.of = (emu_ax.h == 0) ? 1 : 0;
+	emu_flags.cf = ((emu_ah == 0xFF && (emu_al & 0x80)) || (emu_ah == 0x00 && !(emu_al & 0x80))) ? 0 : 1;
+	emu_flags.of = ((emu_ah == 0xFF && (emu_al & 0x80)) || (emu_ah == 0x00 && !(emu_al & 0x80))) ? 0 : 1;
+//	emu_flags.cf = (emu_ah == 0) ? 1 : 0;
+//	emu_flags.of = (emu_ah == 0) ? 1 : 0;
 }
 void emu_imuluw(uint16 *dest, int16 val) {
-	int32 res = (int16)emu_ax.x * val;
+	int32 res = (int16)emu_ax * val;
 
-	emu_ax.x = res;
-	emu_dx.x = res >> 16;
+	emu_ax = res;
+	emu_dx = res >> 16;
 
 	/* It depends on how you define 'sign extended' .. but this keeps it DosBox compatible */
-	emu_flags.cf = ((emu_dx.x == 0xFFFF && (emu_ax.x & 0x8000)) || (emu_dx.x == 0x0000 && !(emu_ax.x & 0x8000))) ? 0 : 1;
-	emu_flags.of = ((emu_dx.x == 0xFFFF && (emu_ax.x & 0x8000)) || (emu_dx.x == 0x0000 && !(emu_ax.x & 0x8000))) ? 0 : 1;
-//	emu_flags.cf = (emu_dx.x == 0) ? 1 : 0;
-//	emu_flags.of = (emu_dx.x == 0) ? 1 : 0;
+	emu_flags.cf = ((emu_dx == 0xFFFF && (emu_ax & 0x8000)) || (emu_dx == 0x0000 && !(emu_ax & 0x8000))) ? 0 : 1;
+	emu_flags.of = ((emu_dx == 0xFFFF && (emu_ax & 0x8000)) || (emu_dx == 0x0000 && !(emu_ax & 0x8000))) ? 0 : 1;
+//	emu_flags.cf = (emu_dx == 0) ? 1 : 0;
+//	emu_flags.of = (emu_dx == 0) ? 1 : 0;
 }
 
 
 /* DIV */
 
 void emu_divb(uint8 *dest, uint8 val2) {
-	emu_ax.l = emu_ax.x / val2;
-	emu_ax.h = emu_ax.x % val2;
+	emu_al = emu_ax / val2;
+	emu_ah = emu_ax % val2;
 }
 void emu_divw(uint16 *dest, uint16 val2) {
-	int32 dividend = ((emu_dx.x << 16) + emu_ax.x);
+	int32 dividend = ((emu_dx << 16) + emu_ax);
 
-	emu_ax.x = dividend / val2;
-	emu_dx.x = dividend % val2;
+	emu_ax = dividend / val2;
+	emu_dx = dividend % val2;
 }
 
 
 /* IDIV */
 
 void emu_idivb(uint8 *dest, int8 val2) {
-	emu_ax.l = (int)emu_ax.x / val2;
-	emu_ax.h = (int)emu_ax.x % val2;
+	emu_al = (int)emu_ax / val2;
+	emu_ah = (int)emu_ax % val2;
 }
 void emu_idivw(uint16 *dest, int16 val2) {
-	int32 dividend = ((emu_dx.x << 16) + emu_ax.x);
+	int32 dividend = ((emu_dx << 16) + emu_ax);
 
-	emu_ax.x = dividend / val2;
-	emu_dx.x = dividend % val2;
+	emu_ax = dividend / val2;
+	emu_dx = dividend % val2;
 }
 
 
@@ -675,11 +675,11 @@ void emu_rcrws(uint16 *dest, int8 val2) { emu_rcrw(dest, val2); }
 
 void emu_aaa()
 {
-	emu_flags.sf = (emu_ax.l >= 0x7A && emu_ax.l <= 0xF9) ? 1 : 0;
+	emu_flags.sf = (emu_al >= 0x7A && emu_al <= 0xF9) ? 1 : 0;
 
-	if ((emu_ax.l & 0x0F) > 0x09 || emu_flags.af) {
-		emu_ax.x += 0x0106;
-		emu_flags.of = ((emu_ax.l & 0xF0) == 0x70 && !emu_flags.af) ? 1 : 0;
+	if ((emu_al & 0x0F) > 0x09 || emu_flags.af) {
+		emu_ax += 0x0106;
+		emu_flags.of = ((emu_al & 0xF0) == 0x70 && !emu_flags.af) ? 1 : 0;
 		emu_flags.af = 1;
 		emu_flags.cf = 1;
 	} else {
@@ -688,11 +688,11 @@ void emu_aaa()
 		emu_flags.cf = 0;
 	}
 
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 
 	/* DosBox compatible: do this at the end */
-	emu_ax.l &= 0x0F;
+	emu_al &= 0x0F;
 }
 
 
@@ -700,12 +700,12 @@ void emu_aaa()
 
 void emu_aad()
 {
-	emu_ax.l += emu_ax.h * 10;
-	emu_ax.h = 0;
+	emu_al += emu_ah * 10;
+	emu_ah = 0;
 
-	emu_flags_sfb(emu_ax.l);
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_sfb(emu_al);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 	emu_flags.cf = 0;
 	emu_flags.of = 0;
 	emu_flags.af = 0;
@@ -716,12 +716,12 @@ void emu_aad()
 
 void emu_aam()
 {
-	emu_ax.h = emu_ax.l / 10;
-	emu_ax.l = emu_ax.l % 10;
+	emu_ah = emu_al / 10;
+	emu_al = emu_al % 10;
 
-	emu_flags_sfb(emu_ax.l);
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_sfb(emu_al);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 	emu_flags.cf = 0;
 	emu_flags.of = 0;
 	emu_flags.af = 0;
@@ -732,24 +732,24 @@ void emu_aam()
 
 void emu_aas()
 {
-	if ((emu_ax.l & 0x0F) > 9 || emu_flags.af) {
-		emu_ax.x -= 0x0106;
+	if ((emu_al & 0x0F) > 9 || emu_flags.af) {
+		emu_ax -= 0x0106;
 		emu_flags.af = 1;
 		emu_flags.cf = 1;
-		emu_flags.of = (emu_flags.af && emu_ax.l >= 0x80 && emu_ax.l <= 0x85) ? 1 : 0;
-		emu_flags.sf = (emu_ax.l >= 0x86 || (emu_flags.af && emu_ax.l <= 0x05)) ? 1 : 0;
+		emu_flags.of = (emu_flags.af && emu_al >= 0x80 && emu_al <= 0x85) ? 1 : 0;
+		emu_flags.sf = (emu_al >= 0x86 || (emu_flags.af && emu_al <= 0x05)) ? 1 : 0;
 	} else {
 		emu_flags.af = 0;
 		emu_flags.cf = 0;
 		emu_flags.of = 0;
-		emu_flags.sf = (emu_ax.l >= 0x80);
+		emu_flags.sf = (emu_al >= 0x80);
 	}
 
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 
 	/* DosBox compatible: do this at the end */
-	emu_ax.l &= 0x0F;
+	emu_al &= 0x0F;
 }
 
 
@@ -757,22 +757,22 @@ void emu_aas()
 
 void emu_daa()
 {
-	if ((emu_ax.l & 0x0F) > 0x09 || emu_flags.af) {
-		emu_ax.l = emu_ax.l + 0x06;
+	if ((emu_al & 0x0F) > 0x09 || emu_flags.af) {
+		emu_al = emu_al + 0x06;
 		emu_flags.af = 1;
 	} else {
 		emu_flags.af = 0;
 	}
-	if (emu_ax.l > 0x9F || emu_flags.cf) {
-		emu_ax.l = emu_ax.l + 0x60;
+	if (emu_al > 0x9F || emu_flags.cf) {
+		emu_al = emu_al + 0x60;
 		emu_flags.cf = 1;
 	} else {
 		emu_flags.cf = 0;
 	}
 
-	emu_flags_sfb(emu_ax.l);
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_sfb(emu_al);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 }
 
 
@@ -780,20 +780,20 @@ void emu_daa()
 
 void emu_das()
 {
-	if ((emu_ax.l & 0x0F) > 0x09 || emu_flags.af) {
-		emu_ax.l = emu_ax.l - 0x06;
+	if ((emu_al & 0x0F) > 0x09 || emu_flags.af) {
+		emu_al = emu_al - 0x06;
 		emu_flags.af = 1;
 	} else {
 		emu_flags.af = 0;
 	}
-	if (emu_ax.l > 0x9F || emu_flags.cf) {
-		emu_ax.l = emu_ax.l - 0x60;
+	if (emu_al > 0x9F || emu_flags.cf) {
+		emu_al = emu_al - 0x60;
 		emu_flags.cf = 1;
 	} else {
-		emu_flags.cf = (emu_ax.l <= 0x05) ? 1 : 0; // DosBox compatible, according to docs this should just be 0
+		emu_flags.cf = (emu_al <= 0x05) ? 1 : 0; // DosBox compatible, according to docs this should just be 0
 	}
 
-	emu_flags_sfb(emu_ax.l);
-	emu_flags_zf(emu_ax.l);
-	emu_flags_pf(emu_ax.l);
+	emu_flags_sfb(emu_al);
+	emu_flags_zf(emu_al);
+	emu_flags_pf(emu_al);
 }

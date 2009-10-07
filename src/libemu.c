@@ -12,11 +12,11 @@ uint16 emu_ss = 0, emu_sp = 0;
 uint16 emu_si = 0, emu_di = 0;
 uint16 emu_ds = 0, emu_es = 0;
 uint16 emu_bp = 0;
-reg emu_ax = { { 0, 0 } };
-reg emu_bx = { { 0, 0 } };
-reg emu_cx = { { 0, 0 } };
-reg emu_dx = { { 0, 0 } };
-flags emu_flags = { { 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 }, };
+emu_reg_t emu_ax_i = { { 0, 0 } };
+emu_reg_t emu_bx_i = { { 0, 0 } };
+emu_reg_t emu_cx_i = { { 0, 0 } };
+emu_reg_t emu_dx_i = { { 0, 0 } };
+emu_flags_t emu_flags_i = { { 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }, };
 
 uint8 emu_memory[1024 * 1024];
 
@@ -49,10 +49,10 @@ void emu_make_crash_dump()
 		uint16 values[20];
 		values[0]  = emu_cs;
 		values[1]  = emu_ip;
-		values[2]  = emu_ax.x;
-		values[3]  = emu_bx.x;
-		values[4]  = emu_cx.x;
-		values[5]  = emu_dx.x;
+		values[2]  = emu_ax;
+		values[3]  = emu_bx;
+		values[4]  = emu_cx;
+		values[5]  = emu_dx;
 		values[6]  = emu_si;
 		values[7]  = emu_di;
 		values[8]  = emu_bp;
@@ -60,7 +60,7 @@ void emu_make_crash_dump()
 		values[10] = emu_ds;
 		values[11] = emu_es;
 		values[12] = emu_ss;
-		values[13] = emu_flags.all;
+		values[13] = emu_flags_all;
 		values[14] = emu_deep;
 		values[15] = emu_last_cs;
 		values[16] = emu_last_ip;
@@ -112,10 +112,10 @@ void emu_init(int argc, char **argv)
 		fread(values, sizeof(uint16), 20, fp);
 		emu_cs        = values[0];
 		emu_ip        = values[1];
-		emu_ax.x      = values[2];
-		emu_bx.x      = values[3];
-		emu_cx.x      = values[4];
-		emu_dx.x      = values[5];
+		emu_ax      = values[2];
+		emu_bx      = values[3];
+		emu_cx      = values[4];
+		emu_dx      = values[5];
 		emu_si        = values[6];
 		emu_di        = values[7];
 		emu_bp        = values[8];
@@ -123,7 +123,7 @@ void emu_init(int argc, char **argv)
 		emu_ds        = values[10];
 		emu_es        = values[11];
 		emu_ss        = values[12];
-		emu_flags.all = values[13];
+		emu_flags_all = values[13];
 		emu_deep      = values[14];
 		emu_last_cs   = values[15];
 		emu_last_ip   = values[16];
@@ -160,16 +160,16 @@ void trace(char *prefix, char *segment, uint8 type, uint16 segmentValue, uint16 
 	if (type == 0) memory[0] = '\0';
 	else if (type == 1) sprintf(memory, "%s:[%04X]=%04X", segment, offset, emu_get_memory16(segmentValue, 0, offset));
 	else sprintf(memory, "%s:[%04X]=%04X", segment, (uint16)(offset + registerOffset), emu_get_memory16(segmentValue, registerOffset, offset));
-	fprintf(stderr, "%-47s%-23sEAX:%08X EBX:%08X ECX:%08X EDX:%08X ESI:%08X EDI:%08X EBP:%08X ESP:%08X DS:%04X ES:%04X FS:%04X GS:%04X SS:%04X CF:%d ZF:%d SF:%d OF:%d AF:%d PF:%d IF:%d\n", prefix, memory, emu_ax.x, emu_bx.x, emu_cx.x, emu_dx.x, emu_si, emu_di, emu_bp, emu_sp, emu_ds, emu_es, 0, 0, emu_ss, emu_flags.cf, emu_flags.zf, emu_flags.sf, emu_flags.of, emu_flags.af, emu_flags.pf, emu_flags.inf);
+	fprintf(stderr, "%-47s%-23sEAX:%08X EBX:%08X ECX:%08X EDX:%08X ESI:%08X EDI:%08X EBP:%08X ESP:%08X DS:%04X ES:%04X FS:%04X GS:%04X SS:%04X CF:%d ZF:%d SF:%d OF:%d AF:%d PF:%d IF:%d\n", prefix, memory, emu_ax, emu_bx, emu_cx, emu_dx, emu_si, emu_di, emu_bp, emu_sp, emu_ds, emu_es, 0, 0, emu_ss, emu_flags.cf, emu_flags.zf, emu_flags.sf, emu_flags.of, emu_flags.af, emu_flags.pf, emu_flags.inf);
 }
 
 void debug()
 {
 	fprintf(stderr, "DEEP=%d\n", emu_deep);
-	fprintf(stderr, "AX=%04X SI=%04X DS=%04X\n", emu_ax.x, emu_si, emu_ds);
-	fprintf(stderr, "BX=%04X DI=%04X ES=%04X\n", emu_bx.x, emu_di, emu_es);
-	fprintf(stderr, "CX=%04X CS=%04X IP=%04X BP=%04X\n", emu_cx.x, emu_cs, emu_ip, emu_bp);
-	fprintf(stderr, "DX=%04X SP=%04X SS=%04X\n", emu_dx.x, emu_sp, emu_ss);
+	fprintf(stderr, "AX=%04X SI=%04X DS=%04X\n", emu_ax, emu_si, emu_ds);
+	fprintf(stderr, "BX=%04X DI=%04X ES=%04X\n", emu_bx, emu_di, emu_es);
+	fprintf(stderr, "CX=%04X CS=%04X IP=%04X BP=%04X\n", emu_cx, emu_cs, emu_ip, emu_bp);
+	fprintf(stderr, "DX=%04X SP=%04X SS=%04X\n", emu_dx, emu_sp, emu_ss);
 	fprintf(stderr, "C%d Z%d S%d O%d A%d P%d D%d I%d T%d\n", emu_flags.cf, emu_flags.zf, emu_flags.sf, emu_flags.of, emu_flags.af, emu_flags.pf, emu_flags.df, emu_flags.inf, emu_flags.tp);
 }
 

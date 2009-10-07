@@ -7,12 +7,12 @@
 
 void emu_int13()
 {
-	switch (emu_ax.h) {
+	switch (emu_ah) {
 		case 0x00: /* RESET DISK - DL -> drive */
 		{          /* Return: AH -> status */
 			/* Sure thing, I will do that right away ... NOT! */
 			emu_flags.cf = 0;
-			emu_ax.h = 0;
+			emu_ah = 0;
 		} return;
 
 		case 0x08: /* GET DRIVE PARAMETERS - DL -> drive number */
@@ -24,7 +24,7 @@ void emu_int13()
 		case 0x80: return;
 
 		default:
-			fprintf(stderr, "[EMU] [ INT13:%02X ] Not Yet Implemented\n", emu_ax.h);
+			fprintf(stderr, "[EMU] [ INT13:%02X ] Not Yet Implemented\n", emu_ah);
 			bios_uninit(1);
 	}
 }

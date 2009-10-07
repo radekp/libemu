@@ -661,74 +661,74 @@ void emu_int10_update()
 
 void emu_int10()
 {
-	switch (emu_ax.h) {
+	switch (emu_ah) {
 		case 0x00: /* SET VIDEO MODE - AL -> new mode */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:00 ] SET VIDEO MODE '0x%X'\n", emu_ax.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:00 ] SET VIDEO MODE '0x%X'\n", emu_al);
 			/* Next screen update it will switch to this mode */
-			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = emu_ax.l;
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = emu_al;
 		} return;
 		case 0x01: /* SET CURSOR TYPE - CH -> cursor starting scan line, CL -> cursor ending scan line */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:01 ] SET CURSOR TYPE '0x%X/0x%X'\n", emu_cx.h, emu_cx.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:01 ] SET CURSOR TYPE '0x%X/0x%X'\n", emu_ch, emu_cl);
 		} return;
 
 		case 0x02: /* SET CURSOR POSITION - BH -> page number, DH -> row, DL -> column */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:02 ] SET CURSOR POSITION '%dx%d' in page 0x%X\n", emu_dx.h, emu_dx.l, emu_bx.h);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:02 ] SET CURSOR POSITION '%dx%d' in page 0x%X\n", emu_dh, emu_dl, emu_bh);
 		} return;
 
 		case 0x03: /* GET CURSOR POSITION - BH -> page number */
 		{          /* Return: CH -> cursor starting scan line, CL -> cursor ending scan line, DH -> row, DL -> column */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:03 ] GET CURSOR POSITION in page 0x%X\n", emu_bx.h);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:03 ] GET CURSOR POSITION in page 0x%X\n", emu_bh);
 
-			emu_cx.h = 0x0;
-			emu_cx.l = 0x0;
-			emu_dx.h = 0x0;
-			emu_dx.l = 0x0;
+			emu_ch = 0x0;
+			emu_cl = 0x0;
+			emu_dh = 0x0;
+			emu_dl = 0x0;
 		} return;
 
 		case 0x05: /* SELECT ACTIVE DISPLAY PAGE - AL -> new page number */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:05 ] SELECT ACTIVE DISPLAY PAGE to 0x%X\n", emu_ax.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:05 ] SELECT ACTIVE DISPLAY PAGE to 0x%X\n", emu_al);
 			/* TODO -- Implement this */
 		} return;
 
 		case 0x09: /* WRITE CHAR AND ATTR - AL -> char to write, BH -> display page, BL -> char attribute, CX -> count */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:09 ] WRITE CHAR '%c' AND ATTR '%d' for %d bytes at page 0x%X\n", emu_ax.l, emu_bx.l, emu_bx.h, emu_cx.x);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:09 ] WRITE CHAR '%c' AND ATTR '%d' for %d bytes at page 0x%X\n", emu_al, emu_bl, emu_bh, emu_cx);
 		} return;
 
 		case 0x0B: /* SET COLOR PALETTE - BH -> type, BL -> value */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:0B ] SET COLOR PALETTE '0x%X/0x%X'\n", emu_bx.l, emu_bx.h);
-			_int10_palette(emu_bx.h, emu_bx.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:0B ] SET COLOR PALETTE '0x%X/0x%X'\n", emu_bl, emu_bh);
+			_int10_palette(emu_bh, emu_bl);
 		} return;
 
 		case 0x0E: /* WRITE TEXT - AL -> char to write, BH -> display page, BL -> foreground color */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:0E ] WRITE CHAR '%c' with color %d at page 0x%X\n", emu_ax.l, emu_bx.l, emu_bx.h);
-			printf("%c", emu_ax.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:0E ] WRITE CHAR '%c' with color %d at page 0x%X\n", emu_al, emu_bl, emu_bh);
+			printf("%c", emu_al);
 		} return;
 
 		case 0x0F: /* GET VIDEO STATUS */
 		{          /* Return: AH -> number of screen columns, AL -> video mode, BH -> current display page */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:0F ] GET VIDEO STATUS\n");
-			emu_ax.h = 80;
-			emu_ax.l = emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE);
-			emu_bx.h = 0;
+			emu_ah = 80;
+			emu_al = emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE);
+			emu_bh = 0;
 		} return;
 
 		case 0x10: /* GET/SET PALETTE */
 		{
-			switch (emu_ax.l) {
+			switch (emu_al) {
 				case 0x12: /* SET DAC BLOCK - BX -> first colour, CX -> number of colours, ES:DX -> table */
 				{          /* Return: */
-					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:10:12 ] SET DAC BLOCK from %d to %d at %X:%X\n", emu_bx.x, emu_bx.x + emu_cx.x - 1, emu_es, emu_dx.x);
+					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:10:12 ] SET DAC BLOCK from %d to %d at %X:%X\n", emu_bx, emu_bx + emu_cx - 1, emu_es, emu_dx);
 
 					int i;
-					uint8 *memory = &emu_get_memory8(emu_es, 0, emu_dx.x);
-					for (i = emu_bx.x; i < emu_bx.x + emu_cx.x; i++) {
+					uint8 *memory = &emu_get_memory8(emu_es, 0, emu_dx);
+					for (i = emu_bx; i < emu_bx + emu_cx; i++) {
 						emu_vga_dac[0].rgb[i].r = ((*memory++) & 0x3F) * 4;
 						emu_vga_dac[0].rgb[i].g = ((*memory++) & 0x3F) * 4;
 						emu_vga_dac[0].rgb[i].b = ((*memory++) & 0x3F) * 4;
@@ -737,20 +737,20 @@ void emu_int10()
 				} return;
 
 				default:
-					fprintf(stderr, "[EMU] [ INT10:10:%02X ] Not Yet Implemented\n", emu_ax.l);
+					fprintf(stderr, "[EMU] [ INT10:10:%02X ] Not Yet Implemented\n", emu_al);
 					bios_uninit(1);
 			}
 		} return;
 
 		case 0x11: /* CHARACTER GENERATOR ROUTINE - AL -> type */
 		{          /* Return: CX -> byte per character, DL -> rows - 1, ES:BP -> pointer to table */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:11:%02X ] CHARACTER GENERATOR ROUTINE\n", emu_ax.l);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:11:%02X ] CHARACTER GENERATOR ROUTINE\n", emu_al);
 			/* TODO -- Implement this */
 		}
 
 		case 0x12: /* VIDEO SUBSYSTEM CONFIGURATION */
 		{
-			switch (emu_bx.l) {
+			switch (emu_bl) {
 				case 0x00: /* no idea, used by 'checkit' */
 				{          /* Return: */
 					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:12:00 ] no idea\n");
@@ -759,14 +759,14 @@ void emu_int10()
 				case 0x10: /* VIDEO CONFIGURATION */
 				{          /* Return: BH -> 1 (colour) or 0 (mono), BL -> 0 (64k), 1 (128k), 2 (192k), 3 (256k), CH -> feature bits, CL -> switch settings */
 					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:12:10 ] GET VIDEO CONFIGURATION\n");
-					emu_bx.h = 0;
-					emu_bx.l = 3;
-					emu_cx.h = 0;
-					emu_cx.l = 0x09; // TODO -- Where does this number come from? Besides DosBox source code
+					emu_bh = 0;
+					emu_bl = 3;
+					emu_ch = 0;
+					emu_cl = 0x09; // TODO -- Where does this number come from? Besides DosBox source code
 				} return;
 
 				default:
-					fprintf(stderr, "[EMU] [ INT10:12:%02X ] Not Yet Implemented\n", emu_bx.l);
+					fprintf(stderr, "[EMU] [ INT10:12:%02X ] Not Yet Implemented\n", emu_bl);
 					bios_uninit(1);
 			}
 		} return;
@@ -774,9 +774,9 @@ void emu_int10()
 		case 0x1A: /* VIDEO DISPLAY COMBINATION - AL -> 0 (get) or 1 (set), BL -> active display, BH -> inactive display */
 		{          /* Return: AL -> 0x1A, BL -> active display, BH -> inactive display */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:1A ] VIDEO DISPLAY COMBINATION\n");
-			if (emu_ax.l == 0) {
-				emu_bx.x = 0x08; // TODO -- Where does this number come from? Besides DosBox source code
-				emu_ax.l = 0x1A;
+			if (emu_al == 0) {
+				emu_bx = 0x08; // TODO -- Where does this number come from? Besides DosBox source code
+				emu_al = 0x1A;
 			} else {
 				fprintf(stderr, "[EMU] [ INT10:1A:SET ] Not Yet Implemented\n");
 				bios_uninit(1);
@@ -785,10 +785,10 @@ void emu_int10()
 
 		case 0x1B: /* VIDEO BIOS STATE INFORMATION - BX -> zero, ES:DI -> pointer to 64byte buffer */
 		{          /* Return: AL -> 1B, ES:DI -> pointer to updated buffer */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:1B ] BIOS STATE INFORMATION (%d) at %04X:%04X\n", emu_bx.x, emu_es, emu_di);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:1B ] BIOS STATE INFORMATION (%d) at %04X:%04X\n", emu_bx, emu_es, emu_di);
 
 			/* TODO -- Implement this */
-			emu_ax.l = emu_ax.h;
+			emu_al = emu_ah;
 		} return;
 
 		/* Used by 'checkit', Hercurlus thing. Ignore. */
@@ -798,7 +798,7 @@ void emu_int10()
 		case 0xFE: return;
 
 		default:
-			fprintf(stderr, "[EMU] [ INT10:%02X ] Not Yet Implemented\n", emu_ax.h);
+			fprintf(stderr, "[EMU] [ INT10:%02X ] Not Yet Implemented\n", emu_ah);
 			bios_uninit(1);
 	}
 };

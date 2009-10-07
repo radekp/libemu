@@ -93,12 +93,12 @@ void emu_inw(uint16 *dest, uint16 port) {
 
 void emu_insb()
 {
-	emu_inb(&emu_get_memory8(emu_es, emu_di, 0), emu_dx.x);
+	emu_inb(&emu_get_memory8(emu_es, emu_di, 0), emu_dx);
 	if (emu_flags.df) emu_di -= 1; else emu_di += 1;
 }
 void emu_insw()
 {
-	emu_inw(&emu_get_memory16(emu_es, emu_di, 0), emu_dx.x);
+	emu_inw(&emu_get_memory16(emu_es, emu_di, 0), emu_dx);
 	if (emu_flags.df) emu_di -= 2; else emu_di += 2;
 }
 
@@ -182,12 +182,12 @@ void emu_outw(uint16 port, uint16 value) {
 
 void emu_outsb()
 {
-	emu_outb(emu_dx.x, emu_get_memory8(emu_es, emu_di, 0));
+	emu_outb(emu_dx, emu_get_memory8(emu_es, emu_di, 0));
 	if (emu_flags.df) emu_di -= 1; else emu_di += 1;
 }
 void emu_outsw()
 {
-	emu_outw(emu_dx.x, emu_get_memory16(emu_es, emu_di, 0));
+	emu_outw(emu_dx, emu_get_memory16(emu_es, emu_di, 0));
 	if (emu_flags.df) emu_di -= 2; else emu_di += 2;
 }
 
@@ -202,12 +202,12 @@ void emu_syscall(uint8 value) {
 
 			/* Preserve a few registers over INT1C calls */
 			uint16 old_ds = emu_ds;
-			uint16 old_dx = emu_dx.x;
-			uint16 old_ax = emu_ax.x;
+			uint16 old_dx = emu_dx;
+			uint16 old_ax = emu_ax;
 			emu_hard_int(0x1C);
 			emu_ds = old_ds;
-			emu_dx.x = old_dx;
-			emu_ax.x = old_ax;
+			emu_dx = old_dx;
+			emu_ax = old_ax;
 		} break;
 
 		case 0x09: // KEYBOARD SERVICES
@@ -221,11 +221,11 @@ void emu_syscall(uint8 value) {
 
 		case 0x11: // BIOS FLAGS
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT11 ] BIOS FLAGS\n");
-			emu_ax.x = emu_get_memory16(BIOS_MEMORY_PAGE, BIOS_EQUIPEMENT, 0);
+			emu_ax = emu_get_memory16(BIOS_MEMORY_PAGE, BIOS_EQUIPEMENT, 0);
 			break;
 
 		case 0x12: // MEMORY SIZE
-			emu_ax.x = 640;
+			emu_ax = 640;
 			break;
 
 		case 0x13: // DISKETTE SERVICE
@@ -273,7 +273,7 @@ void emu_syscall(uint8 value) {
 
 	/* Enable interrupt again, and push new flags on the stack, so popf() reads the new values */
 	emu_flags.inf = 1;
-	emu_get_memory16(emu_ss, emu_sp, 4) = emu_flags.all;
+	emu_get_memory16(emu_ss, emu_sp, 4) = emu_flags_all;
 }
 
 void emu_halt()

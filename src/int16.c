@@ -7,11 +7,11 @@
 
 void emu_int16()
 {
-	switch (emu_ax.h) {
+	switch (emu_ah) {
 		case 0x00: /* WAIT AND READ KEYPRESS */
 		{          /* Return: AH -> scan code, AL ->ASCII char */
 			extern int emu_int9_getasciikey();
-			emu_ax.x = emu_int9_getasciikey();
+			emu_ax = emu_int9_getasciikey();
 		} return;
 
 		case 0x01: /* GET KEYBOARD STATUS */
@@ -21,15 +21,15 @@ void emu_int16()
 
 			if (emu_int9_keywaiting()) {
 				emu_flags.zf = 0;
-				emu_ax.x = emu_int9_getasciikey();
+				emu_ax = emu_int9_getasciikey();
 			} else {
 				emu_flags.zf = 1;
-				emu_ax.x = 0x0000;
+				emu_ax = 0x0000;
 			}
 		} return;
 
 		default:
-			fprintf(stderr, "[EMU] [ INT16:%02X ] Not Yet Implemented\n", emu_ax.h);
+			fprintf(stderr, "[EMU] [ INT16:%02X ] Not Yet Implemented\n", emu_ah);
 			bios_uninit(1);
 	}
 }

@@ -57,7 +57,7 @@ void emu_cmc()
 
 void emu_salc()
 {
-	emu_ax.l = (emu_flags.cf == 0) ? 0 : 0xFF;
+	emu_al = (emu_flags.cf == 0) ? 0 : 0xFF;
 }
 
 /* REGISTER */
@@ -76,12 +76,14 @@ void emu_pop(uint16 *v1)
 
 void emu_pushf()
 {
-	emu_push(emu_flags.all);
+	emu_push(emu_flags_all);
 }
 
 void emu_popf()
 {
-	emu_pop(&emu_flags.all);
+	uint16 temp;
+	emu_pop(&temp);
+	emu_flags_all = temp;
 
 #if EMULATE_386
 	emu_flags.res4 = 0;
@@ -99,10 +101,10 @@ void emu_popf()
 void emu_pusha()
 {
 	uint16 sp = emu_sp;
-	emu_push(emu_ax.x);
-	emu_push(emu_cx.x);
-	emu_push(emu_dx.x);
-	emu_push(emu_bx.x);
+	emu_push(emu_ax);
+	emu_push(emu_cx);
+	emu_push(emu_dx);
+	emu_push(emu_bx);
 	emu_push(sp);
 	emu_push(emu_bp);
 	emu_push(emu_si);
@@ -116,35 +118,35 @@ void emu_popa()
 	emu_pop(&emu_si);
 	emu_pop(&emu_bp);
 	emu_pop(&sp); // Throw away
-	emu_pop(&emu_bx.x);
-	emu_pop(&emu_dx.x);
-	emu_pop(&emu_cx.x);
-	emu_pop(&emu_ax.x);
+	emu_pop(&emu_bx);
+	emu_pop(&emu_dx);
+	emu_pop(&emu_cx);
+	emu_pop(&emu_ax);
 }
 
 void emu_lahf()
 {
-	emu_ax.h = 0;
-	emu_ax.h += (emu_flags.sf << 7);
-	emu_ax.h += (emu_flags.zf << 6);
-	emu_ax.h += (           0 << 5);
-	emu_ax.h += (emu_flags.af << 4);
-	emu_ax.h += (           0 << 3);
-	emu_ax.h += (emu_flags.pf << 2);
-	emu_ax.h += (           1 << 1);
-	emu_ax.h += (emu_flags.cf << 0);
+	emu_ah = 0;
+	emu_ah += (emu_flags.sf << 7);
+	emu_ah += (emu_flags.zf << 6);
+	emu_ah += (           0 << 5);
+	emu_ah += (emu_flags.af << 4);
+	emu_ah += (           0 << 3);
+	emu_ah += (emu_flags.pf << 2);
+	emu_ah += (           1 << 1);
+	emu_ah += (emu_flags.cf << 0);
 }
 
 void emu_sahf()
 {
-	emu_flags.sf = (emu_ax.h & 0x80) >> 7;
-	emu_flags.zf = (emu_ax.h & 0x40) >> 6;
-	//             (emu_ax.h & 0x20) >> 5;
-	emu_flags.af = (emu_ax.h & 0x10) >> 4;
-	//             (emu_ax.h & 0x08) >> 3;
-	emu_flags.pf = (emu_ax.h & 0x04) >> 2;
-	//             (emu_ax.h & 0x02) >> 1;
-	emu_flags.cf = (emu_ax.h & 0x01) >> 0;
+	emu_flags.sf = (emu_ah & 0x80) >> 7;
+	emu_flags.zf = (emu_ah & 0x40) >> 6;
+	//             (emu_ah & 0x20) >> 5;
+	emu_flags.af = (emu_ah & 0x10) >> 4;
+	//             (emu_ah & 0x08) >> 3;
+	emu_flags.pf = (emu_ah & 0x04) >> 2;
+	//             (emu_ah & 0x02) >> 1;
+	emu_flags.cf = (emu_ah & 0x01) >> 0;
 }
 
 void emu_arplw(uint16 *dst, uint16 src)

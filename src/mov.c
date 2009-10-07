@@ -54,13 +54,13 @@ void emu_movsw(uint16 seg)
 
 void emu_lodsb(uint16 seg)
 {
-	emu_ax.l = emu_get_memory8(seg, emu_si, 0);
+	emu_al = emu_get_memory8(seg, emu_si, 0);
 	if (emu_flags.df) emu_si -= 1; else emu_si += 1;
 }
 
 void emu_lodsw(uint16 seg)
 {
-	emu_ax.x = emu_get_memory16(seg, emu_si, 0);
+	emu_ax = emu_get_memory16(seg, emu_si, 0);
 	if (emu_flags.df) emu_si -= 2; else emu_si += 2;
 }
 
@@ -68,13 +68,13 @@ void emu_lodsw(uint16 seg)
 
 void emu_stosb()
 {
-	emu_get_memory8(emu_es, emu_di, 0) = emu_ax.l;
+	emu_get_memory8(emu_es, emu_di, 0) = emu_al;
 	if (emu_flags.df) emu_di -= 1; else emu_di += 1;
 }
 
 void emu_stosw()
 {
-	emu_get_memory16(emu_es, emu_di, 0) = emu_ax.x;
+	emu_get_memory16(emu_es, emu_di, 0) = emu_ax;
 	if (emu_flags.df) emu_di -= 2; else emu_di += 2;
 }
 
@@ -98,13 +98,13 @@ void emu_cmpsw(uint16 seg)
 
 void emu_scasb()
 {
-	emu_cmpb(&emu_ax.l, emu_get_memory8(emu_es, emu_di, 0));
+	emu_cmpb(&emu_al, emu_get_memory8(emu_es, emu_di, 0));
 	if (emu_flags.df) emu_di -= 1; else emu_di += 1;
 }
 
 void emu_scasw()
 {
-	emu_cmpw(&emu_ax.x, emu_get_memory16(emu_es, emu_di, 0));
+	emu_cmpw(&emu_ax, emu_get_memory16(emu_es, emu_di, 0));
 	if (emu_flags.df) emu_di -= 2; else emu_di += 2;
 }
 
@@ -112,5 +112,5 @@ void emu_scasw()
 
 void emu_cwd()
 {
-	emu_dx.x = ((emu_ax.x & 0x8000) == 0) ? 0 : 0xFFFF;
+	emu_dx = ((emu_ax & 0x8000) == 0) ? 0 : 0xFFFF;
 }

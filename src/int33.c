@@ -40,29 +40,29 @@ void emu_mouse_callback(uint8 reason)
 {
 	if (emu_mouse[0].callback_ip == 0x0 && emu_mouse[0].callback_cs == 0x0) return;
 
-	uint16 old_ax = emu_ax.x;
-	uint16 old_bx = emu_bx.x;
-	uint16 old_cx = emu_cx.x;
-	uint16 old_dx = emu_dx.x;
+	uint16 old_ax = emu_ax;
+	uint16 old_bx = emu_bx;
+	uint16 old_cx = emu_cx;
+	uint16 old_dx = emu_dx;
 	uint16 old_ds = emu_ds;
 	uint16 old_es = emu_es;
 	uint16 old_di = emu_di;
 	uint16 old_si = emu_si;
 
-	emu_ax.x = reason;
-	emu_bx.x = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2 : 0x0);
-	emu_cx.x = emu_mouse[0].pos_x;
-	emu_dx.x = emu_mouse[0].pos_y;
+	emu_ax = reason;
+	emu_bx = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2 : 0x0);
+	emu_cx = emu_mouse[0].pos_x;
+	emu_dx = emu_mouse[0].pos_y;
 	emu_di   = emu_mouse[0].dx;
 	emu_si   = emu_mouse[0].dy;
 	emu_ds   = 0;
 
 	emu_hard_call(emu_mouse[0].callback_cs, emu_mouse[0].callback_ip);
 
-	emu_ax.x = old_ax;
-	emu_bx.x = old_bx;
-	emu_cx.x = old_cx;
-	emu_dx.x = old_dx;
+	emu_ax = old_ax;
+	emu_bx = old_bx;
+	emu_cx = old_cx;
+	emu_dx = old_dx;
 	emu_ds   = old_ds;
 	emu_es   = old_es;
 	emu_di   = old_di;
@@ -99,64 +99,64 @@ void emu_mouse_change_button(uint8 left, uint8 press)
 
 void emu_int33()
 {
-	switch (emu_ax.x) {
+	switch (emu_ax) {
 		case 0x00: /* MOUSE INSTALLED FLAG */
 		{          /* Return: AX -> 0x0000 (not installed), 0xFFFF, (installed) */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:00 ] MOUSE INSTALLED FLAG\n");
-			emu_ax.x = 0xFFFF;
+			emu_ax = 0xFFFF;
 		} return;
 
 		case 0x03: /* GET MOUSE POSITION AND BUTTON STATUS */
 		{          /* Return: BX -> button, CX -> horizontal, DX -> vertical */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:03 ] GET MOUSE POSITION AND BUTTON STATUS\n");
-			emu_bx.x = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2: 0x0);
-			emu_cx.x = emu_mouse[0].pos_x;
-			emu_dx.x = emu_mouse[0].pos_y;
+			emu_bx = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2: 0x0);
+			emu_cx = emu_mouse[0].pos_x;
+			emu_dx = emu_mouse[0].pos_y;
 		} return;
 
 		case 0x04: /* SET MOUSE POSITION, CX -> horizontal, DX -> vertical */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:04 ] SET MOUSE POSITION to %dx%d\n", emu_cx.x, emu_dx.x);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:04 ] SET MOUSE POSITION to %dx%d\n", emu_cx, emu_dx);
 
-			emu_mouse[0].pos_x = emu_cx.x;
-			emu_mouse[0].pos_y = emu_dx.x;
+			emu_mouse[0].pos_x = emu_cx;
+			emu_mouse[0].pos_y = emu_dx;
 		} return;
 
 		case 0x07: /* SET MOUSE HORIZONTAL MIN/MAX, CX -> minimum, DX ->maximum */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:07 ] SET MOUSE HORIZONTAL MIN/MAX to %d - %d\n", emu_cx.x, emu_dx.x);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:07 ] SET MOUSE HORIZONTAL MIN/MAX to %d - %d\n", emu_cx, emu_dx);
 
-			emu_mouse[0].min_x = emu_cx.x;
-			emu_mouse[0].max_x = emu_dx.x;
+			emu_mouse[0].min_x = emu_cx;
+			emu_mouse[0].max_x = emu_dx;
 		} return;
 
 		case 0x08: /* SET MOUSE VERTICAL MIN/MAX, CX -> minimum, DX -> maximum */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:08 ] SET MOUSE VERTICAL MIN/MAX to %d - %d\n", emu_cx.x, emu_dx.x);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:08 ] SET MOUSE VERTICAL MIN/MAX to %d - %d\n", emu_cx, emu_dx);
 
-			emu_mouse[0].min_y = emu_cx.x;
-			emu_mouse[0].max_y = emu_dx.x;
+			emu_mouse[0].min_y = emu_cx;
+			emu_mouse[0].max_y = emu_dx;
 		} return;
 
 		case 0x0C: /* SET USER CALLBACK, CX -> mask, ES:DX -> callback */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:0C ] SET USER CALLBACK to %04X:%04X\n", emu_es, emu_dx.x);
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT33:0C ] SET USER CALLBACK to %04X:%04X\n", emu_es, emu_dx);
 
 			emu_mouse[0].callback_cs = emu_es;
-			emu_mouse[0].callback_ip = emu_dx.x;
-			emu_mouse[0].callback_mask = emu_cx.x;
+			emu_mouse[0].callback_ip = emu_dx;
+			emu_mouse[0].callback_mask = emu_cx;
 		} return;
 
 		case 0x24: /* GET INFORMATION */
 		{          /* Return: BH -> major, BL -> minor, CH -> type, CL -> IRQ */
-			emu_bx.h = 8;
-			emu_bx.l = 5;
-			emu_cx.h = 4;
-			emu_cx.l = 0;
+			emu_bh = 8;
+			emu_bl = 5;
+			emu_ch = 4;
+			emu_cl = 0;
 		} return;
 
 		default:
-			fprintf(stderr, "[EMU] [ INT33:%02X ] Not Yet Implemented\n", emu_ax.x);
+			fprintf(stderr, "[EMU] [ INT33:%02X ] Not Yet Implemented\n", emu_ax);
 			bios_uninit(1);
 	}
 }
