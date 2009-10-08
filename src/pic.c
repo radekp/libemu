@@ -32,7 +32,7 @@ static int _pic_node_count = 0;
 static int _pic_node_size  = 0;
 static uint32 _pic_last_sec;
 static uint32 _pic_last_usec;
-const uint32 _pic_speed    = 20000; // Our PIC runs at 50Hz
+const uint32 _pic_speed    = 20000; /* Our PIC runs at 50Hz */
 
 void _pic_run()
 {

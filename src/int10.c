@@ -186,13 +186,13 @@ static void _int9_keyadd(uint8 key)
 
 uint8 emu_io_read_3D9()
 {
-	return 0x08; // TODO -- Find the correct value
+	return 0x08; /* TODO -- Find the correct value */
 }
 void emu_io_write_3D9(uint8 value)
 {
-	// value & 0x7 - Screen RGB
+	/* value & 0x7 - Screen RGB */
 	_gfx_high = (value >> 3) & 1;
-	// (value >> 4) - Screen high
+	/* (value >> 4) - Screen high */
 	_gfx_pal = (value >> 5) & 1;
 }
 uint8 emu_io_read_3DA()
@@ -211,7 +211,7 @@ uint8 emu_io_read_3DA()
 
 static void _int10_palette(uint8 type, uint8 value)
 {
-	if (type == 0) return; // Background colour
+	if (type == 0) return; /* Background colour */
 	_gfx_pal = value;
 }
 
@@ -250,7 +250,7 @@ enum {
 
 typedef struct VGADac {
 	uint8 state;
-	uint8 colour; // 0 = red, 1 = green, 2 = blue
+	uint8 colour; /* 0 = red, 1 = green, 2 = blue */
 	uint8 read_index;
 	uint8 write_index;
 
@@ -762,7 +762,7 @@ void emu_int10()
 					emu_bh = 0;
 					emu_bl = 3;
 					emu_ch = 0;
-					emu_cl = 0x09; // TODO -- Where does this number come from? Besides DosBox source code
+					emu_cl = 0x09; /* TODO -- Where does this number come from? Besides DosBox source code */
 				} return;
 
 				default:
@@ -775,7 +775,7 @@ void emu_int10()
 		{          /* Return: AL -> 0x1A, BL -> active display, BH -> inactive display */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:1A ] VIDEO DISPLAY COMBINATION\n");
 			if (emu_al == 0) {
-				emu_bx = 0x08; // TODO -- Where does this number come from? Besides DosBox source code
+				emu_bx = 0x08; /* TODO -- Where does this number come from? Besides DosBox source code */
 				emu_al = 0x1A;
 			} else {
 				fprintf(stderr, "[EMU] [ INT10:1A:SET ] Not Yet Implemented\n");

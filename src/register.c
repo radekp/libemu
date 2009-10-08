@@ -117,7 +117,7 @@ void emu_popa()
 	emu_pop(&emu_di);
 	emu_pop(&emu_si);
 	emu_pop(&emu_bp);
-	emu_pop(&sp); // Throw away
+	emu_pop(&sp); /* Throw away */
 	emu_pop(&emu_bx);
 	emu_pop(&emu_dx);
 	emu_pop(&emu_cx);
@@ -141,11 +141,11 @@ void emu_sahf()
 {
 	emu_flags.sf = (emu_ah & 0x80) >> 7;
 	emu_flags.zf = (emu_ah & 0x40) >> 6;
-	//             (emu_ah & 0x20) >> 5;
+	/*             (emu_ah & 0x20) >> 5; */
 	emu_flags.af = (emu_ah & 0x10) >> 4;
-	//             (emu_ah & 0x08) >> 3;
+	/*             (emu_ah & 0x08) >> 3; */
 	emu_flags.pf = (emu_ah & 0x04) >> 2;
-	//             (emu_ah & 0x02) >> 1;
+	/*             (emu_ah & 0x02) >> 1; */
 	emu_flags.cf = (emu_ah & 0x01) >> 0;
 }
 

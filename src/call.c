@@ -129,7 +129,7 @@ void emu_hard_jump_recursive(uint16 deep)
 		uint16 ret_cs = emu_cs;
 
 		emu_call();
-		if (emu_deep == odeep) continue; // Normal jumps
+		if (emu_deep == odeep) continue; /* Normal jumps */
 
 		if (emu_deep > odeep) {
 			/* We go up one level. Find out to what position we should return */

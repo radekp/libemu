@@ -107,10 +107,10 @@ void emu_int21()
 
 		case 0x1B: /* GET ALLOCATION TABLE INFORMATION */
 		{          /* Return AX -> sectors per cluster, CX -> bytes per sector, DX -> clusters on disk, DS:BX -> pointer to MDB */
-			emu_ax = 0x7F;   // 127 sectors per cluster
-			emu_cx = 0x200;  // 512 bytes per sector
-			emu_dx = 0x4000; // About 1.2 GiB total diskspace
-			emu_ds   = 0x0;    // TODO -- MDB support
+			emu_ax = 0x7F;   /* 127 sectors per cluster */
+			emu_cx = 0x200;  /* 512 bytes per sector */
+			emu_dx = 0x4000; /* About 1.2 GiB total diskspace */
+			emu_ds = 0x0;    /* TODO -- MDB support */
 			emu_bx = 0x0;
 		} return;
 
@@ -153,8 +153,8 @@ void emu_int21()
 		{          /* Return: AL -> major version, AH -> minor version, BH -> FF if OEM key, BL:CX -> OEM key */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:30 ] GET DOS VERSION\n");
 			/* We indentify ourself as PC-DOS, no OEM key */
-			if (emu_al == 0) emu_bh = 0xFF; // MS-Dos
-			if (emu_al == 1) emu_bh = 0x10; // Indentify as in HMA
+			if (emu_al == 0) emu_bh = 0xFF; /* MS-Dos */
+			if (emu_al == 1) emu_bh = 0x10; /* Indentify as in HMA */
 
 			emu_al = 5;
 			emu_ah = 0;
@@ -181,10 +181,10 @@ void emu_int21()
 		case 0x36: /* GET FREE DISKSPACE, DL -> drive number */
 		{          /* Return: AX -> sectors per cluster, BX -> available clusters, CX -> bytes per sector, DX -> clusters per drive */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:36 ] GET FREE DISKSPACE for '0x%X'\n", emu_dl);
-			emu_ax = 0x7F;   // 127 sectors per cluster
-			emu_bx = 0x1000; // About 300 MiB free diskspace
-			emu_cx = 0x200;  // 512 bytes per sector
-			emu_dx = 0x4000; // About 1.2 GiB total diskspace
+			emu_ax = 0x7F;   /* 127 sectors per cluster */
+			emu_bx = 0x1000; /* About 300 MiB free diskspace */
+			emu_cx = 0x200;  /* 512 bytes per sector */
+			emu_dx = 0x4000; /* About 1.2 GiB total diskspace */
 		} return;
 
 		case 0x3B: /* CHANGE CURRENT DIRECTORY - DS:DX -> ASCII directory name */
@@ -220,7 +220,7 @@ void emu_int21()
 
 			FILE *fp = fopen(buf, "wb");
 			if (fp == NULL) {
-				emu_ax = 0x05; // ACCESS DENIED
+				emu_ax = 0x05; /* ACCESS DENIED */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -230,7 +230,7 @@ void emu_int21()
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
-				emu_ax = 0x04; // TOO MANY OPEN FILES
+				emu_ax = 0x04; /* TOO MANY OPEN FILES */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -254,7 +254,7 @@ void emu_int21()
 
 			FILE *fp = fopen(buf, mode);
 			if (fp == NULL) {
-				emu_ax = 0x02; // FILE NOT FOUND
+				emu_ax = 0x02; /* FILE NOT FOUND */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -264,7 +264,7 @@ void emu_int21()
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
-				emu_ax = 0x04; // TOO MANY OPEN FILES
+				emu_ax = 0x04; /* TOO MANY OPEN FILES */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -279,7 +279,7 @@ void emu_int21()
 			emu_flags.cf = 0;
 
 			if (emu_bx < 5 || emu_bx >= 20) {
-				emu_ax = 0x06; // INVALID HANDLE
+				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -295,7 +295,7 @@ void emu_int21()
 			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
-				emu_ax = 0x06; // INVALID HANDLE
+				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -303,7 +303,7 @@ void emu_int21()
 			int res = read(_int21_filemap[emu_bx], buf, emu_cx);
 
 			if (res < 0) {
-				emu_ax = 0x1E; // READ FAULT
+				emu_ax = 0x1E; /* READ FAULT */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -317,7 +317,7 @@ void emu_int21()
 			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
-				emu_ax = 0x06; // INVALID HANDLE
+				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -325,7 +325,7 @@ void emu_int21()
 			int res = write(_int21_filemap[emu_bx], buf, emu_cx);
 
 			if (res < 0) {
-				emu_ax = 0x1D; // WRITE FAULT
+				emu_ax = 0x1D; /* WRITE FAULT */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -351,7 +351,7 @@ void emu_int21()
 			int pos = (int32)((emu_cx << 16) + emu_dx);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
-				emu_ax = 0x06; // INVALID HANDLE
+				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -359,7 +359,7 @@ void emu_int21()
 			int res = lseek(_int21_filemap[emu_bx], pos, (emu_al == 0) ? SEEK_SET : ((emu_al == 1) ? SEEK_CUR : SEEK_END));
 
 			if (res < 0) {
-				emu_ax = 0x19; // SEEK ERROR
+				emu_ax = 0x19; /* SEEK ERROR */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -375,7 +375,7 @@ void emu_int21()
 			emu_int21_getfile(emu_ds, emu_dx, buf);
 
 			if (access(buf, F_OK) != 0) {
-				emu_ax = 0x02; // FILE NOT FOUND
+				emu_ax = 0x02; /* FILE NOT FOUND */
 				emu_flags.cf = 1;
 				return;
 			}
@@ -486,7 +486,7 @@ void emu_int21()
 			/* See if there was enough memory free */
 			if (emu_bx > msb->size) {
 				emu_flags.cf = 1;
-				emu_ax = 0x08; // INSUFFICIENT MEMORY
+				emu_ax = 0x08; /* INSUFFICIENT MEMORY */
 				emu_bx = biggest_size == 0 ? msb->size : biggest_size;
 				return;
 			}
@@ -516,7 +516,7 @@ void emu_int21()
 			/* Check if it is a MSB (as far as this is a 'valid' check) */
 			if (cur->type != 0x5A && cur->type != 0x4D) {
 				emu_flags.cf = 1;
-				emu_ax = 0x09; // INVALID MEMORY BLOCK ADDRESS
+				emu_ax = 0x09; /* INVALID MEMORY BLOCK ADDRESS */
 				return;
 			}
 
@@ -542,7 +542,7 @@ void emu_int21()
 			/* Check if we try to allocate a block bigger than the free memory */
 			if (emu_bx > cur->size) {
 				emu_flags.cf = 1;
-				emu_ax = 0x08; // INSUFFICIENT MEMORY
+				emu_ax = 0x08; /* INSUFFICIENT MEMORY */
 				emu_bx = cur->size;
 				return;
 			}

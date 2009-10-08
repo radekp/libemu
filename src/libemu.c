@@ -41,7 +41,7 @@ void emu_make_crash_dump()
 		values[1] = 'M';
 		values[2] = 'U';
 		values[3] = 0x17;
-		values[4] = 4; // Version
+		values[4] = 4; /* Version */
 		fwrite(values, sizeof(uint8), 5, fo);
 	}
 

@@ -391,10 +391,13 @@ void emu_imulub(uint8 *dest, int8 val) {
 	emu_ah = res >> 8;
 
 	/* It depends on how you define 'sign extended' .. but this keeps it DosBox compatible */
+#if 1
 	emu_flags.cf = ((emu_ah == 0xFF && (emu_al & 0x80)) || (emu_ah == 0x00 && !(emu_al & 0x80))) ? 0 : 1;
 	emu_flags.of = ((emu_ah == 0xFF && (emu_al & 0x80)) || (emu_ah == 0x00 && !(emu_al & 0x80))) ? 0 : 1;
-//	emu_flags.cf = (emu_ah == 0) ? 1 : 0;
-//	emu_flags.of = (emu_ah == 0) ? 1 : 0;
+#else
+	emu_flags.cf = (emu_ah == 0) ? 1 : 0;
+	emu_flags.of = (emu_ah == 0) ? 1 : 0;
+#endif
 }
 void emu_imuluw(uint16 *dest, int16 val) {
 	int32 res = (int16)emu_ax * val;
@@ -403,10 +406,13 @@ void emu_imuluw(uint16 *dest, int16 val) {
 	emu_dx = res >> 16;
 
 	/* It depends on how you define 'sign extended' .. but this keeps it DosBox compatible */
+#if 1
 	emu_flags.cf = ((emu_dx == 0xFFFF && (emu_ax & 0x8000)) || (emu_dx == 0x0000 && !(emu_ax & 0x8000))) ? 0 : 1;
 	emu_flags.of = ((emu_dx == 0xFFFF && (emu_ax & 0x8000)) || (emu_dx == 0x0000 && !(emu_ax & 0x8000))) ? 0 : 1;
-//	emu_flags.cf = (emu_dx == 0) ? 1 : 0;
-//	emu_flags.of = (emu_dx == 0) ? 1 : 0;
+#else
+	emu_flags.cf = (emu_dx == 0) ? 1 : 0;
+	emu_flags.of = (emu_dx == 0) ? 1 : 0;
+#endif
 }
 
 
@@ -444,7 +450,7 @@ void emu_shlb(uint8 *dest, uint8 val2) {
 	val2 = val2 & 0x1F;
 	emu_flags.af = (val2 != 0) ? 1: 0;
 
-	emu_flags.of = ((*dest) >> (7 - val2)) ^ ((*dest) >> 7); // DosBox compatible
+	emu_flags.of = ((*dest) >> (7 - val2)) ^ ((*dest) >> 7); /* DosBox compatible */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) >> 7;
@@ -454,13 +460,13 @@ void emu_shlb(uint8 *dest, uint8 val2) {
 	emu_flags_sfb(*dest);
 	emu_flags_zf (*dest);
 	emu_flags_pf (*dest);
-//	emu_flags.of = emu_flags.cf ^ ((*dest) >> 7);
+/*	emu_flags.of = emu_flags.cf ^ ((*dest) >> 7); */
 }
 void emu_shlw(uint16 *dest, uint16 val2) {
 	val2 = val2 & 0x1F;
 	emu_flags.af = (val2 != 0) ? 1: 0;
 
-	emu_flags.of = ((*dest) >> (15 - val2)) ^ ((*dest) >> 15); // DosBox compatible
+	emu_flags.of = ((*dest) >> (15 - val2)) ^ ((*dest) >> 15); /* DosBox compatible */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) >> 15;
@@ -470,7 +476,7 @@ void emu_shlw(uint16 *dest, uint16 val2) {
 	emu_flags_sfw(*dest);
 	emu_flags_zf (*dest);
 	emu_flags_pf (*dest);
-//	emu_flags.of = emu_flags.cf ^ ((*dest) >> 15);
+/*	emu_flags.of = emu_flags.cf ^ ((*dest) >> 15); */
 }
 void emu_shlws(uint16 *dest, int8 val2) { emu_shlw(dest, val2); }
 
@@ -555,7 +561,7 @@ void emu_sarws(uint16 *dest, int8 val2) { emu_sarw(dest, val2); }
 
 void emu_rolb(uint8 *dest, uint8 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) >> 7;
@@ -567,7 +573,7 @@ void emu_rolb(uint8 *dest, uint8 val2) {
 }
 void emu_rolw(uint16 *dest, uint16 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) >> 15;
@@ -584,7 +590,7 @@ void emu_rolws(uint16 *dest, int8 val2) { emu_rolw(dest, val2); }
 
 void emu_rorb(uint8 *dest, uint8 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) & 0x1;
@@ -596,7 +602,7 @@ void emu_rorb(uint8 *dest, uint8 val2) {
 }
 void emu_rorw(uint16 *dest, uint16 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		emu_flags.cf = (*dest) & 0x1;
@@ -613,7 +619,7 @@ void emu_rorws(uint16 *dest, int8 val2) { emu_rorw(dest, val2); }
 
 void emu_rclb(uint8 *dest, uint8 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		uint8 old_cf = emu_flags.cf;
@@ -626,7 +632,7 @@ void emu_rclb(uint8 *dest, uint8 val2) {
 }
 void emu_rclw(uint16 *dest, uint16 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		uint8 old_cf = emu_flags.cf;
@@ -644,7 +650,7 @@ void emu_rclws(uint16 *dest, int8 val2) { emu_rclw(dest, val2); }
 
 void emu_rcrb(uint8 *dest, uint8 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		uint8 old_cf = emu_flags.cf;
@@ -657,7 +663,7 @@ void emu_rcrb(uint8 *dest, uint8 val2) {
 }
 void emu_rcrw(uint16 *dest, uint16 val2) {
 	val2 = val2 & 0x1F;
-//	emu_flags.af = (val2 != 0) ? 1: 0;
+/*	emu_flags.af = (val2 != 0) ? 1: 0; */
 
 	for (; val2 > 0; --val2) {
 		uint8 old_cf = emu_flags.cf;
@@ -790,7 +796,7 @@ void emu_das()
 		emu_al = emu_al - 0x60;
 		emu_flags.cf = 1;
 	} else {
-		emu_flags.cf = (emu_al <= 0x05) ? 1 : 0; // DosBox compatible, according to docs this should just be 0
+		emu_flags.cf = (emu_al <= 0x05) ? 1 : 0; /* DosBox compatible, according to docs this should just be 0 */
 	}
 
 	emu_flags_sfb(emu_al);

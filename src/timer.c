@@ -13,8 +13,8 @@
 
 MSVC_PACKED_BEGIN
 typedef struct Timer {
-	uint8 bcd;      // 0 = 16bit, 1 = BCD
-	uint8 access;   // 1 = MSB only, 2 = LSB only, 3 = LSB first, then MSB, 4 = MSB (after LSB)
+	uint8 bcd;      /* 0 = 16bit, 1 = BCD */
+	uint8 access;   /* 1 = MSB only, 2 = LSB only, 3 = LSB first, then MSB, 4 = MSB (after LSB) */
 	uint8 mode;
 	uint8 start;
 	uint32 read;
@@ -44,8 +44,8 @@ void _timer_pic_prepare_read(uint8 counter)
 	if (!_timer[counter].start) return;
 
 	switch (_timer[counter].mode) {
-		case 0: // Countdown, Interrupt, Stop
-		case 4: // Software Triggered Strobe
+		case 0: /* Countdown, Interrupt, Stop */
+		case 4: /* Software Triggered Strobe */
 			_timer[counter].read = (_timer[counter].delay + _timer[counter].read - usec_delta) % _timer[counter].delay;
 			if (usec_delta > _timer[counter].read) {
 				/* We passed the timer, so we need to stop this counter */
@@ -54,11 +54,11 @@ void _timer_pic_prepare_read(uint8 counter)
 			}
 			break;
 
-		case 2: // Rate Generate
+		case 2: /* Rate Generate */
 			_timer[counter].read = (_timer[counter].delay + _timer[counter].read - usec_delta) % _timer[counter].delay;
 			break;
 
-		case 3: // Square Wave Rate Generate, runs twice as fast
+		case 3: /* Square Wave Rate Generate, runs twice as fast */
 			_timer[counter].read = (_timer[counter].delay + _timer[counter].read - usec_delta * 2) % _timer[counter].delay;
 			if (_timer[counter].read & 0x1) _timer[counter].read -= 1;
 			break;
@@ -67,7 +67,7 @@ void _timer_pic_prepare_read(uint8 counter)
 		case 5:
 		default:
 			_timer[counter].read = 0xFFFF;
-			return; // Return, as we don't need to convert to a counter
+			return; /* Return, as we don't need to convert to a counter */
 	}
 
 	_timer[counter].read = _timer[counter].read * USEC_TO_COUNTER;
@@ -89,7 +89,7 @@ void _timer_pic_write(uint8 counter, uint8 value)
 	switch (_timer[counter].access) {
 		case 1: _timer[counter].write = (value << 0); break;
 		case 2: _timer[counter].write = (value << 8); break;
-		case 3: _timer[counter].access = 4; _timer[counter].write  = (value << 0); return; // First a MSB before we change anything
+		case 3: _timer[counter].access = 4; _timer[counter].write  = (value << 0); return; /* First a MSB before we change anything */
 		case 4: _timer[counter].access = 3; _timer[counter].write |= (value << 8); break;
 	}
 	if (_timer[counter].write == 0x0) _timer[counter].write = (_timer[counter].bcd) ? 9999 : 0x10000;
@@ -101,7 +101,7 @@ void _timer_pic_write(uint8 counter, uint8 value)
 void _timer_pic_setting(uint8 setting)
 {
 	uint8 counter = (setting >> 6) & 0x03;
-	if (counter == 0x03) return; // We only implement the 8253, not 8254
+	if (counter == 0x03) return; /* We only implement the 8253, not 8254 */
 
 	_timer[counter].bcd = ((setting & 0x01) != 0) ? 1 : 0;
 
@@ -115,7 +115,7 @@ void _timer_pic_setting(uint8 setting)
 	_timer[counter].access = access;
 	_timer[counter].mode   = (setting >> 1) & 0x07;
 	_timer[counter].start  = 1;
-	if (_timer[counter].mode > 0x05) _timer[counter].mode -= 0x04; // Mode 6 and 7 don't exist, convert to 2 and 3
+	if (_timer[counter].mode > 0x05) _timer[counter].mode -= 0x04; /* Mode 6 and 7 don't exist, convert to 2 and 3 */
 }
 
 void timer_init()
