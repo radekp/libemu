@@ -24,7 +24,8 @@ ifndef LIBS
 LIBS :=
 endif
 
-CFLAGS := $(CFLAGS) -g -Wall -Wextra -ansi -pedantic -Wno-unused-parameter -Werror
+CFLAGS := $(CFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Werror
+CFLAGS := $(CFLAGS) -ansi -pedantic
 LDFLAGS := $(LDFLAGS) -g
 
 SOURCE := $(shell ls src/*.c src/*/*.c 2>/dev/null)
