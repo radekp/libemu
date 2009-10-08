@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #if !defined(_MSC_VER)
-#	include <sys/time.h>
+	#include <sys/time.h>
 #endif /* _MSC_VER */
 #if defined(WIN32)
-#	define _WIN32_WINNT 0x0500
-#	include <windows.h>
+	#define _WIN32_WINNT 0x0500
+	#include <windows.h>
 #else
-#	include <signal.h>
+	#define __USE_POSIX
+	#include <signal.h>
 #endif /* WIN32 */
 #include "types.h"
 #include "pic.h"
@@ -96,7 +97,14 @@ void pic_init()
 	_timer.it_interval.tv_sec = 0;
 	_timer.it_interval.tv_usec = _pic_speed;
 
-	signal(SIGALRM, _pic_run);
+	{
+		struct sigaction pic_sa;
+
+		sigemptyset(&pic_sa.sa_mask);
+		pic_sa.sa_handler = _pic_run;
+		pic_sa.sa_flags   = 0;
+		sigaction(SIGALRM, &pic_sa, NULL);
+	}
 #endif /* WIN32 */
 	pic_resume();
 }
