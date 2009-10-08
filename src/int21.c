@@ -26,13 +26,14 @@
 
 MSVC_PACKED_BEGIN
 typedef struct MSB {
-	uint8 type;
-	uint16 psp;
-	uint16 size;
-	uint8 unused[3];
-	char filename[8];
+	PACK uint8  type;
+	PACK uint16 psp;
+	PACK uint16 size;
+	PACK uint8  unused[3];
+	PACK char   filename[8];
 } GCC_PACKED MSB;
 MSVC_PACKED_END
+assert_compile(sizeof(MSB) == 16);
 
 /* DOS starts its filenumbers at 5, so simulate that by mapping them to system filenumbers */
 static int _int21_filemap[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

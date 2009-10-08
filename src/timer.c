@@ -13,18 +13,19 @@
 
 MSVC_PACKED_BEGIN
 typedef struct Timer {
-	uint8 bcd;      /* 0 = 16bit, 1 = BCD */
-	uint8 access;   /* 1 = MSB only, 2 = LSB only, 3 = LSB first, then MSB, 4 = MSB (after LSB) */
-	uint8 mode;
-	uint8 start;
-	uint32 read;
-	uint32 write;
-	uint32 delay;
-	uint32 last_sec;
-	uint32 last_usec;
-	uint8 unused[8];
+	PACK uint8  bcd;      /* 0 = 16bit, 1 = BCD */
+	PACK uint8  access;   /* 1 = MSB only, 2 = LSB only, 3 = LSB first, then MSB, 4 = MSB (after LSB) */
+	PACK uint8  mode;
+	PACK uint8  start;
+	PACK uint32 read;
+	PACK uint32 write;
+	PACK uint32 delay;
+	PACK uint32 last_sec;
+	PACK uint32 last_usec;
+	PACK uint8  unused[8];
 } GCC_PACKED Timer;
 MSVC_PACKED_END
+assert_compile(sizeof(Timer) == 32);
 
 static Timer *_timer;
 

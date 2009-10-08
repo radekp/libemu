@@ -7,27 +7,28 @@
 
 MSVC_PACKED_BEGIN
 typedef struct Mouse {
-	uint16 pos_x;
-	uint16 pos_y;
+	PACK uint16 pos_x;
+	PACK uint16 pos_y;
 
-	int16 dx;
-	int16 dy;
+	PACK  int16 dx;
+	PACK  int16 dy;
 
-	uint16 min_x;
-	uint16 min_y;
-	uint16 max_x;
-	uint16 max_y;
+	PACK uint16 min_x;
+	PACK uint16 min_y;
+	PACK uint16 max_x;
+	PACK uint16 max_y;
 
-	uint8 left_button;
-	uint8 right_button;
+	PACK uint8  left_button;
+	PACK uint8  right_button;
 
-	uint16 callback_cs;
-	uint16 callback_ip;
-	uint8 callback_mask;
+	PACK uint16 callback_cs;
+	PACK uint16 callback_ip;
+	PACK uint8  callback_mask;
 
-	uint8 unused[1];
+	PACK uint8  unused[1];
 } GCC_PACKED Mouse;
 MSVC_PACKED_END
+assert_compile(sizeof(Mouse) == 24);
 
 static Mouse *emu_mouse;
 
