@@ -12,7 +12,7 @@
 LDFLAGS := $(LDFLAGS) -shared
 ifdef WIN32
 LIB_EXTENSION := .dll
-CFLAGS := -DWIN32
+CFLAGS := $(CFLAGS) -DWIN32
 else
 LIB_EXTENSION := .so
 CFLAGS := $(CFLAGS) -fPIC
