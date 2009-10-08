@@ -116,10 +116,10 @@ void emu_init(int argc, char **argv)
 		fread(values, sizeof(uint16), 20, fp);
 		emu_cs        = values[0];
 		emu_ip        = values[1];
-		emu_ax      = values[2];
-		emu_bx      = values[3];
-		emu_cx      = values[4];
-		emu_dx      = values[5];
+		emu_ax        = values[2];
+		emu_bx        = values[3];
+		emu_cx        = values[4];
+		emu_dx        = values[5];
 		emu_si        = values[6];
 		emu_di        = values[7];
 		emu_bp        = values[8];
