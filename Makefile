@@ -39,7 +39,7 @@ all: libemu$(LIB_EXTENSION) libemu.a
 objs/%.o: %.c
 	$(shell mkdir -p `dirname $@`)
 	@echo "[Compiling] $^"
-	$(Q)$(CC) $(CFLAGS) -c $^ -o $@ -I include/ -I $(SDL_INCLUDE)
+	$(Q)$(CC) $(CFLAGS) -c $^ -o $@ -I include/ -I $(SDL_INCLUDE) -ansi -pedantic -Werror
 
 libemu$(LIB_EXTENSION): $(SOURCE)
 	@echo "[Dynamic] $@"
