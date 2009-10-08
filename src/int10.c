@@ -2,11 +2,11 @@
 
 #include <SDL.h>
 #ifndef WIN32
-#include <ncurses.h>
-#ifdef UNICODE
-#include <locale.h>
-#include <langinfo.h>
-#endif /* UNICODE */
+	#include <ncurses.h>
+	#ifdef UNICODE
+		#include <locale.h>
+		#include <langinfo.h>
+	#endif /* UNICODE */
 #endif /* WIN32 */
 #include "types.h"
 #include "libemu.h"

@@ -1,8 +1,5 @@
 /* $Id$ */
 
-#if !defined(_MSV_VER)
-	#define _POSIX_SOURCE
-#endif /* _MSV_VER */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +15,9 @@
 	#define F_OK   0
 	#define new    _new
 #else
+	#ifdef __STRICT_ANSI__
+		extern int fileno(FILE *);
+	#endif
 	#include <unistd.h>
 #endif /* _MSC_VER */
 #include "types.h"
