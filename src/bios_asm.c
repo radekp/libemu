@@ -197,14 +197,16 @@ void emu_outsw()
 void emu_syscall(uint8 value) {
 	switch (value) {
 		case 0x08: { /* TIMER */
+			uint16 old_ds, old_dx, old_ax;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT08 ] TIMER\n");
 			/* Increase the counter */
 			emu_get_memory32(BIOS_MEMORY_PAGE, 0, BIOS_COUNTER)++;
 
 			/* Preserve a few registers over INT1C calls */
-			uint16 old_ds = emu_ds;
-			uint16 old_dx = emu_dx;
-			uint16 old_ax = emu_ax;
+			old_ds = emu_ds;
+			old_dx = emu_dx;
+			old_ax = emu_ax;
 			emu_hard_int(0x1C);
 			emu_ds = old_ds;
 			emu_dx = old_dx;

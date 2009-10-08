@@ -519,10 +519,12 @@ void emu_shrws(uint16 *dest, int8 val2) { emu_shrw(dest, val2); }
 /* SAR */
 
 void emu_sarb(uint8 *dest, uint8 val2) {
+	uint8 sign;
+
 	val2 = val2 & 0x1F;
 	emu_flags.af = (val2 != 0) ? 1: 0;
 
-	int8 sign = 0x0;
+	sign = 0x0;
 	if (((*dest) & 0x80) != 0) sign = 0x80;
 
 	for (; val2 > 0; --val2) {
@@ -537,10 +539,12 @@ void emu_sarb(uint8 *dest, uint8 val2) {
 	emu_flags.of = 0;
 }
 void emu_sarw(uint16 *dest, uint16 val2) {
+	uint16 sign;
+
 	val2 = val2 & 0x1F;
 	emu_flags.af = (val2 != 0) ? 1: 0;
 
-	uint16 sign = 0x0;
+	sign = 0x0;
 	if ((*dest) & 0x8000) sign = 0x8000;
 
 	for (; val2 > 0; --val2) {

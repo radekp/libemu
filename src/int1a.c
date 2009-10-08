@@ -29,4 +29,4 @@ void emu_int1a()
 			fprintf(stderr, "[EMU] [ INT1A:%02X ] Not Yet Implemented\n", emu_ah);
 			bios_uninit(1);
 	}
-};
+}

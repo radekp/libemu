@@ -36,22 +36,24 @@ const uint32 _pic_speed    = 20000; /* Our PIC runs at 50Hz */
 
 void _pic_run()
 {
+	PICNode *node;
+	uint32 new_sec, new_usec, usec_delta, delta;
+	int i;
+
 	/* Lock the PIC, to avoid double-calls */
 	static uint8 pic_running = 0;
 	if (pic_running == 1) return;
 	pic_running = 1;
 
 	/* Calculate the time between calls */
-	uint32 new_sec    = pic_get_sec();
-	uint32 new_usec   = pic_get_usec();
-	uint32 usec_delta = (new_sec - _pic_last_sec) * 1000000 + (new_usec - _pic_last_usec);
+	new_sec    = pic_get_sec();
+	new_usec   = pic_get_usec();
+	usec_delta = (new_sec - _pic_last_sec) * 1000000 + (new_usec - _pic_last_usec);
 	_pic_last_sec     = new_sec;
 	_pic_last_usec    = new_usec;
 
 	/* Walk all our timers, see which (and how often) it should be triggered */
-	uint32 delta;
-	int i;
-	PICNode *node = _pic_nodes;
+	node = _pic_nodes;
 	for (i = 0; i < _pic_node_count; i++, node++) {
 		delta = usec_delta;
 
@@ -109,11 +111,12 @@ void pic_uninit()
 
 void pic_timer_add(void (*callback)(), uint32 usec_delay)
 {
+	PICNode *node;
 	if (_pic_node_count == _pic_node_size) {
 		_pic_node_size += 2;
 		_pic_nodes = (PICNode *)realloc(_pic_nodes, _pic_node_size * sizeof(PICNode));
 	}
-	PICNode *node = &_pic_nodes[_pic_node_count++];
+	node = &_pic_nodes[_pic_node_count++];
 
 	node->usec_left  = usec_delay;
 	node->usec_delay = usec_delay;

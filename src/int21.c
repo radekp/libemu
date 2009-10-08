@@ -1,21 +1,24 @@
 /* $Id$ */
 
+#if !defined(_MSV_VER)
+	#define _POSIX_SOURCE
+#endif /* _MSV_VER */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #if defined(_MSC_VER)
-#	include <io.h>
-#	define close  _close
-#	define fileno _fileno
-#	define read   _read
-#	define write  _write
-#	define unlink _unlink
-#	define lseek  _lseek
-#	define access _access
-#	define F_OK   0
-#	define new    _new
+	#include <io.h>
+	#define close  _close
+	#define fileno _fileno
+	#define read   _read
+	#define write  _write
+	#define unlink _unlink
+	#define lseek  _lseek
+	#define access _access
+	#define F_OK   0
+	#define new    _new
 #else
-#	include <unistd.h>
+	#include <unistd.h>
 #endif /* _MSC_VER */
 #include "types.h"
 #include "libemu.h"
@@ -38,11 +41,13 @@ void emu_int21_getfile(uint16 segment, uint16 offset, char *buffer)
 {
 	char tbuf[33];
 	char *buf = &tbuf[0];
+	char *c;
+
 	strncpy(buf, (char *)&emu_get_memory8(segment, offset, 0), 32);
 	buf[32] = '\0';
 
 	/* Convert all names to lowercase */
-	char *c = buf;
+	c = buf;
 	while (*c != '\0') {
 		if (*c >= 'A' && *c <= 'Z') *c = *c - 'A' + 'a';
 		if (*c == '\\') *c = '/';
@@ -67,16 +72,19 @@ void emu_int21()
 
 		case 0x08: /* GET STDIN */
 		{          /* Return: AL -> key */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:08 ] GET STDIN\n");
 			extern int emu_int9_getasciikey();
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:08 ] GET STDIN\n");
 			emu_al = emu_int9_getasciikey();
 			if (emu_al == 0x0A) emu_al = 0x0D;
 		} return;
 
 		case 0x09: /* PRINT STRING - DS:DX -> string terminated by '$' */
 		{          /* Return: */
+			char *buf;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:09 ] PRINT STRING at %04X:%04X\n", emu_ds, emu_dx);
-			char *buf = (char *)&emu_get_memory8(emu_ds, emu_dx, 0);
+			buf = (char *)&emu_get_memory8(emu_ds, emu_dx, 0);
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:09 ] String is '");
 			while (*buf != '$') {
 				printf("%c", *buf);
@@ -88,8 +96,9 @@ void emu_int21()
 
 		case 0x0B: /* IS STDIN WAITING */
 		{          /* Return: AL -> 00 (no key waiting), FF (key waiting) */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:0B ] IS STDIN WAITING\n");
 			extern int emu_int9_keywaiting();
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:0B ] IS STDIN WAITING\n");
 			emu_al = (emu_int9_keywaiting() > 0) ? 0xFF : 0x00;
 		} return;
 
@@ -189,14 +198,16 @@ void emu_int21()
 
 		case 0x3B: /* CHANGE CURRENT DIRECTORY - DS:DX -> ASCII directory name */
 		{          /* Return: */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3B ] CHANGE CURRENT DIRECTORY at %04X:%04X\n", emu_ds, emu_dx);
-			emu_flags.cf = 0;
 			char fbuf[1024];
 			char *buf = &fbuf[0];
+			char *c;
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3B ] CHANGE CURRENT DIRECTORY at %04X:%04X\n", emu_ds, emu_dx);
+			emu_flags.cf = 0;
 			strncpy(buf, (char *)&emu_get_memory8(emu_ds, emu_dx, 0), 1024);
 
 			/* Convert all names to lowercase */
-			char *c = buf;
+			c = buf;
 			while (*c != '\0') {
 				if (*c >= 'A' && *c <= 'Z') *c = *c - 'A' + 'a';
 				if (*c == '\\') *c = '/';
@@ -211,14 +222,17 @@ void emu_int21()
 
 		case 0x3C: /* CREATE FILE - DS:DX -> ASCII filename, CX -> attributes for file */
 		{          /* Return: AX -> file handler */
+			char buf[33];
+			FILE *fp;
+			int i;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3C ] CREATE FILE at %04X:%04X with attribute %d\n", emu_ds, emu_dx, emu_cx);
 			emu_flags.cf = 0;
-			char buf[33];
 			emu_int21_getfile(emu_ds, emu_dx, buf);
 
 			if (emu_cx != 0) fprintf(stderr, "[EMU] [ INT21:3C ] Requesting attributes '%x' for file which is not supported.\n", emu_cx);
 
-			FILE *fp = fopen(buf, "wb");
+			fp = fopen(buf, "wb");
 			if (fp == NULL) {
 				emu_ax = 0x05; /* ACCESS DENIED */
 				emu_flags.cf = 1;
@@ -226,7 +240,6 @@ void emu_int21()
 			}
 
 			/* Find the next open slot for the file number */
-			int i;
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
@@ -241,10 +254,13 @@ void emu_int21()
 
 		case 0x3D: /* OPEN FILE - DS:DX -> ASCII filename, AL -> access mode */
 		{          /* Return: AX -> file handler */
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3D ] OPEN FILE at %04X:%04X with mode %d\n", emu_ds, emu_dx, emu_al);
-			emu_flags.cf = 0;
 			char mode[4] = {'r', 'b', '\0', '\0'};
 			char buf[33];
+			FILE *fp;
+			int i;
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3D ] OPEN FILE at %04X:%04X with mode %d\n", emu_ds, emu_dx, emu_al);
+			emu_flags.cf = 0;
 			emu_int21_getfile(emu_ds, emu_dx, buf);
 
 			if ((emu_al & 0x1) == 0x1) mode[0] = 'w';
@@ -252,7 +268,7 @@ void emu_int21()
 			if (emu_al > 3) fprintf(stderr, "[EMU] [ INT21:3D ] Requesting mode '%x' which is not completely supported.\n", emu_al);
 			emu_ax = 0;
 
-			FILE *fp = fopen(buf, mode);
+			fp = fopen(buf, mode);
 			if (fp == NULL) {
 				emu_ax = 0x02; /* FILE NOT FOUND */
 				emu_flags.cf = 1;
@@ -260,7 +276,6 @@ void emu_int21()
 			}
 
 			/* Find the next open slot for the file number */
-			int i;
 			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
@@ -290,9 +305,12 @@ void emu_int21()
 
 		case 0x3F: /* READ FILE - BX -> file handler, CX -> number of bytes, DS:DX -> buffer */
 		{          /* Return: AX -> bytes read */
+			uint8 *buf;
+			int res;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3F ] READ FILE '%d' for %d bytes to %04X:%04X\n", emu_bx, emu_cx, emu_ds, emu_dx);
 			emu_flags.cf = 0;
-			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx, 0);
+			buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
 				emu_ax = 0x06; /* INVALID HANDLE */
@@ -300,7 +318,7 @@ void emu_int21()
 				return;
 			}
 
-			int res = read(_int21_filemap[emu_bx], buf, emu_cx);
+			res = read(_int21_filemap[emu_bx], buf, emu_cx);
 
 			if (res < 0) {
 				emu_ax = 0x1E; /* READ FAULT */
@@ -312,9 +330,12 @@ void emu_int21()
 
 		case 0x40: /* WRITE FILE - BX -> file handler, CX -> number of bytes, DS:DX -> buffer */
 		{          /* Return: AX -> bytes written */
+			uint8 *buf;
+			int res;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:40 ] WRITE FILE '%d' for %d bytes from %04X:%04X\n", emu_bx, emu_cx, emu_ds, emu_dx);
 			emu_flags.cf = 0;
-			uint8 *buf = &emu_get_memory8(emu_ds, emu_dx, 0);
+			buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
 				emu_ax = 0x06; /* INVALID HANDLE */
@@ -322,7 +343,7 @@ void emu_int21()
 				return;
 			}
 
-			int res = write(_int21_filemap[emu_bx], buf, emu_cx);
+			res = write(_int21_filemap[emu_bx], buf, emu_cx);
 
 			if (res < 0) {
 				emu_ax = 0x1D; /* WRITE FAULT */
@@ -334,9 +355,10 @@ void emu_int21()
 
 		case 0x41: /* DELETE FILE - DS:DX -> ASCII filename */
 		{          /* Return: */
+			char buf[33];
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:41 ] DELETE FILE at %04X:%04X\n", emu_ds, emu_dx);
 			emu_flags.cf = 0;
-			char buf[33];
 			emu_int21_getfile(emu_ds, emu_dx, buf);
 
 			/* Delete the file */
@@ -345,10 +367,13 @@ void emu_int21()
 
 		case 0x42: /* MOVE FILE POINTER - AL -> method, BX -> file handler, CX -> high order bytes to move, DX -> low order bytes to move */
 		{          /* Return: DX:AX -> new location */
+			int pos;
+			int res;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:42 ] MOVE FILE '%d' POINTER to %d via method %d\n", emu_bx, (int32)((emu_cx << 16) + emu_dx), emu_al);
 			emu_flags.cf = 0;
 
-			int pos = (int32)((emu_cx << 16) + emu_dx);
+			pos = (int32)((emu_cx << 16) + emu_dx);
 
 			if (emu_bx < 5 || emu_bx >= 20) {
 				emu_ax = 0x06; /* INVALID HANDLE */
@@ -356,7 +381,7 @@ void emu_int21()
 				return;
 			}
 
-			int res = lseek(_int21_filemap[emu_bx], pos, (emu_al == 0) ? SEEK_SET : ((emu_al == 1) ? SEEK_CUR : SEEK_END));
+			res = lseek(_int21_filemap[emu_bx], pos, (emu_al == 0) ? SEEK_SET : ((emu_al == 1) ? SEEK_CUR : SEEK_END));
 
 			if (res < 0) {
 				emu_ax = 0x19; /* SEEK ERROR */
@@ -369,9 +394,10 @@ void emu_int21()
 
 		case 0x43: /* GET/SET FILE ATTRIBUTES - AL -> 0 (get) or 1 (set), DS:DX -> ASCII filename, CX -> attributes to set */
 		{          /* Return: CX -> attributes (if get) */
+			char buf[33];
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:43 ] GET/SET '%d' FILE ATTRIBUTES for %04X:%04X with '%X'\n", emu_al, emu_ds, emu_dx, emu_cx);
 			emu_flags.cf = 0;
-			char buf[33];
 			emu_int21_getfile(emu_ds, emu_dx, buf);
 
 			if (access(buf, F_OK) != 0) {
@@ -419,27 +445,32 @@ void emu_int21()
 
 		case 0x47: /* GET CURRENT DIRECTORY - DL -> drive number, DS:SI -> buffer */
 		{          /* Return: DS:SI -> ASCII directory name */
+			char *buf;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:47 ] GET CURRENT DIRECTORY\n");
 			emu_flags.cf = 0;
 
 			/* Fake we are in the root of the drive, at all times */
-			char *buf = (char *)&emu_get_memory8(emu_ds, emu_si, 0);
+			buf = (char *)&emu_get_memory8(emu_ds, emu_si, 0);
 			buf[0] = '\0';
 			emu_ax = 0x0100;
 		} return;
 
 		case 0x48: /* ALLOCATE MEMORY BLOCK - BX -> block size in paragraphs */
 		{          /* Return: */
+			uint16 address, biggest_size;
+			MSB *msb, *env;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:48 ] ALLOCATE MEMORY BLOCK of size %X\n", emu_bx << 4);
 			emu_flags.cf = 0;
 
 			/* The first MSB is always at segment 0x68 */
-			uint16 address = 0x68;
-			MSB *msb = (MSB *)&emu_get_memory8(address, 0, 0);
+			address = 0x68;
+			msb = (MSB *)&emu_get_memory8(address, 0, 0);
 			/* Next MSB is always the env */
-			MSB *env = (MSB *)&emu_get_memory8(address + msb->size + 0x1, 0, 0);
+			env = (MSB *)&emu_get_memory8(address + msb->size + 0x1, 0, 0);
 
-			uint16 biggest_size = 0;
+			biggest_size = 0;
 
 			/* Walk all valid MSBs */
 			while (1) {
@@ -492,10 +523,12 @@ void emu_int21()
 			}
 
 			/* We fit in this MSB, so put us there */
-			MSB *new = (MSB *)&emu_get_memory8(address + emu_bx + 0x1, 0, 0);
-			new->type = msb->type;
-			new->psp  = 0x0;
-			new->size = msb->size - emu_bx - 0x1;
+			{
+				MSB *new = (MSB *)&emu_get_memory8(address + emu_bx + 0x1, 0, 0);
+				new->type = msb->type;
+				new->psp  = 0x0;
+				new->size = msb->size - emu_bx - 0x1;
+			}
 
 			/* And update the MSB */
 			msb->type = 0x4D;
@@ -508,10 +541,12 @@ void emu_int21()
 
 		case 0x49: /* FREE ALLOCATED MEMORY BLOCK - ES -> segment of block */
 		{          /* Return: */
+			MSB *cur;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:49 ] FREE MEMORY BLOCK 0x%04X\n", emu_es);
 			emu_flags.cf = 0;
 
-			MSB *cur = (MSB *)&emu_get_memory8(emu_es - 0x1, 0, 0);
+			cur = (MSB *)&emu_get_memory8(emu_es - 0x1, 0, 0);
 
 			/* Check if it is a MSB (as far as this is a 'valid' check) */
 			if (cur->type != 0x5A && cur->type != 0x4D) {
@@ -526,12 +561,14 @@ void emu_int21()
 
 		case 0x4A: /* MODIFY ALLOCATED MEMORY BLOCK - BX -> block size in paragraphs, ES -> segment of block */
 		{          /* Return: ES:BX -> intterupt pointer */
+			MSB *cur, *next, *new;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:4A ] MODIFY MEMORY BLOCK 0x%04X to size %X\n", emu_es, emu_bx << 4);
 			emu_flags.cf = 0;
 
-			MSB *cur  = (MSB *)&emu_get_memory8(emu_es - 0x1, 0, 0);
-			MSB *next = (MSB *)&emu_get_memory8(emu_es + cur->size, 0, 0);
-			MSB *new  = (MSB *)&emu_get_memory8(emu_es + emu_bx, 0, 0);
+			cur  = (MSB *)&emu_get_memory8(emu_es - 0x1, 0, 0);
+			next = (MSB *)&emu_get_memory8(emu_es + cur->size, 0, 0);
+			new  = (MSB *)&emu_get_memory8(emu_es + emu_bx, 0, 0);
 
 			/* First we 'free' the cur block, so merge it with the next block(s) if it is free */
 			while (cur->type != 0x5A && next->psp == 0x0) {

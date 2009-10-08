@@ -100,12 +100,12 @@ void _timer_pic_write(uint8 counter, uint8 value)
 
 void _timer_pic_setting(uint8 setting)
 {
+	uint8 access  = (setting >> 4) & 0x03;
 	uint8 counter = (setting >> 6) & 0x03;
 	if (counter == 0x03) return; /* We only implement the 8253, not 8254 */
 
 	_timer[counter].bcd = ((setting & 0x01) != 0) ? 1 : 0;
 
-	uint8 access = (setting >> 4) & 0x03;
 	if (access == 0) {
 		_timer_pic_prepare_read(counter);
 		return;
@@ -142,15 +142,17 @@ void timer_init()
 		_timer[2].access  = 3;
 		_timer[2].mode    = 3;
 
-		/* Set the starting time of all timer */
-		int i;
-		uint32 start_sec  = pic_get_sec();
-		uint32 start_usec = pic_get_usec();
-		for (i = 0; i < 3; i++) {
-			_timer[i].start     = 1;
-			_timer[i].read      = _timer[i].delay;
-			_timer[i].last_sec  = start_sec;
-			_timer[i].last_usec = start_usec;
+		{
+			/* Set the starting time of all timer */
+			int i;
+			uint32 start_sec  = pic_get_sec();
+			uint32 start_usec = pic_get_usec();
+			for (i = 0; i < 3; i++) {
+				_timer[i].start     = 1;
+				_timer[i].read      = _timer[i].delay;
+				_timer[i].last_sec  = start_sec;
+				_timer[i].last_usec = start_usec;
+			}
 		}
 	} else {
 		/* Make sure the timers don't detect a big jump forward in timing */

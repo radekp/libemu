@@ -38,8 +38,6 @@ void emu_int33_init()
 
 void emu_mouse_callback(uint8 reason)
 {
-	if (emu_mouse[0].callback_ip == 0x0 && emu_mouse[0].callback_cs == 0x0) return;
-
 	uint16 old_ax = emu_ax;
 	uint16 old_bx = emu_bx;
 	uint16 old_cx = emu_cx;
@@ -48,6 +46,8 @@ void emu_mouse_callback(uint8 reason)
 	uint16 old_es = emu_es;
 	uint16 old_di = emu_di;
 	uint16 old_si = emu_si;
+
+	if (emu_mouse[0].callback_ip == 0x0 && emu_mouse[0].callback_cs == 0x0) return;
 
 	emu_ax = reason;
 	emu_bx = (emu_mouse[0].left_button ? 0x1 : 0x0) | (emu_mouse[0].right_button ? 0x2 : 0x0);

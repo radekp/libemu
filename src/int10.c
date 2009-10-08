@@ -157,9 +157,10 @@ int emu_int9_keywaiting()
 
 uint8 emu_io_read_060()
 {
+	uint8 key;
 	if (_int9_used == 0) return 0xFF;
 
-	uint8 key = _int9_key[_int9_pos];
+	key = _int9_key[_int9_pos];
 	if (++_int9_pos >= INT9_KEYBUF_SIZE) _int9_pos -= INT9_KEYBUF_SIZE;
 	_int9_used--;
 
@@ -198,11 +199,12 @@ void emu_io_write_3D9(uint8 value)
 uint8 emu_io_read_3DA()
 {
 	static uint8 flip = 0;
+	uint8 value;
 
 	flip++;
 	if (flip == 20) flip = 0;
 
-	uint8 value = 0;
+	value = 0;
 	if (flip > 10) value |= 0x01;
 	if (flip > 18) value |= 0x08;
 
@@ -245,7 +247,7 @@ void emu_int10_uninit(uint8 wait)
 enum {
 	VGA_DAC_NOT_INITIALIZED = 0,
 	VGA_DAC_READ,
-	VGA_DAC_WRITE,
+	VGA_DAC_WRITE
 };
 
 typedef struct VGADac {
@@ -263,12 +265,13 @@ static void emu_int10_vga_dac_init()
 	emu_vga_dac = (VGADac *)&emu_get_memory8(VGADAC_MEMORY_PAGE, 0, 0);
 
 	if (emu_vga_dac[0].state == VGA_DAC_NOT_INITIALIZED) {
+		int i;
+
 		emu_vga_dac[0].state  = VGA_DAC_READ;
 		emu_vga_dac[0].colour = 0;
 		emu_vga_dac[0].read_index  = 0;
 		emu_vga_dac[0].write_index = 0;
 
-		int i;
 		for (i = 0; i < 256; i++) {
 			emu_vga_dac[0].rgb[i].r = ((i >> 5) & 0x7) * 255 / 7;
 			emu_vga_dac[0].rgb[i].g = ((i >> 2) & 0x7) * 255 / 7;
@@ -388,6 +391,8 @@ void emu_int10_gfx(int mode)
 
 	if (_gfx_type == 1) {
 #ifndef WIN32
+		int b, f;
+
 		initscr();
 		raw();
 		noecho();
@@ -396,7 +401,6 @@ void emu_int10_gfx(int mode)
 		timeout(0);
 
 		start_color();
-		int b, f;
 		for (b = 0; b < 8; b++)
 			for (f = 0; f < 8; f++)
 				init_pair(f + b * 8, _colours_text_0x03[f], _colours_text_0x03[b]);
@@ -425,6 +429,8 @@ void emu_int10_gfx(int mode)
 
 void emu_int10_update()
 {
+	int x, y;
+
 	if (_gfx_lock) return;
 
 	/* Check if we are int he right mode; if not, switch mode */
@@ -438,8 +444,6 @@ void emu_int10_update()
 	/* Flush output */
 	fflush(stdout);
 	fflush(stderr);
-
-	int x, y;
 
 	switch (_gfx_mode) {
 		case 0x03: /* 80x25 16 color text */
@@ -476,12 +480,15 @@ void emu_int10_update()
 		case 0x04: /* CGA 320x200x2 (double sized) */
 			for (y = 0; y < 200; y++) {
 				for (x = 0; x < 320; x += 4) {
+					uint8 data;
+					int lx, ly;
+
 					uint16 offset = ((y >> 1) * 320 + x) >> 2;
 					if (y & 0x1) offset += 0x2000;
-					uint8 data = emu_get_memory8(0xB800, 0, offset);
+					data = emu_get_memory8(0xB800, 0, offset);
 
-					int ly = y * 2;
-					int lx = x * 2;
+					ly = y * 2;
+					lx = x * 2;
 					_gfx_screen[lx + ly * _gfx_width + 0] = _colours_cga_0x04[_gfx_pal][_gfx_high][((data >> 6) & 0x3)];
 					_gfx_screen[lx + ly * _gfx_width + 1] = _colours_cga_0x04[_gfx_pal][_gfx_high][((data >> 6) & 0x3)];
 					_gfx_screen[lx + ly * _gfx_width + 2] = _colours_cga_0x04[_gfx_pal][_gfx_high][((data >> 4) & 0x3)];
@@ -602,16 +609,17 @@ void emu_int10_update()
 #endif /* WIN32 */
 	}
 	if (_gfx_type == 2) {
+		extern void emu_mouse_change_position(uint16 x, uint16 y);
+		extern void emu_mouse_change_button(uint8 left, uint8 press);
+
+		SDL_Event event;
+
 		if (_gfx_palette_update) {
 			_gfx_palette_update = 0;
 			pic_suspend();
 			SDL_SetPalette(_gfx_surface, SDL_LOGPAL | SDL_PHYSPAL, emu_vga_dac[0].rgb, 0, 256);
 			pic_resume();
 		}
-
-		extern void emu_mouse_change_position(uint16 x, uint16 y);
-		extern void emu_mouse_change_button(uint8 left, uint8 press);
-		SDL_Event event;
 
 		if (emu_flags.inf) {
 			while (SDL_PollEvent(&event)) {
@@ -724,10 +732,12 @@ void emu_int10()
 			switch (emu_al) {
 				case 0x12: /* SET DAC BLOCK - BX -> first colour, CX -> number of colours, ES:DX -> table */
 				{          /* Return: */
+					int i;
+					uint8 *memory;
+
 					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:10:12 ] SET DAC BLOCK from %d to %d at %X:%X\n", emu_bx, emu_bx + emu_cx - 1, emu_es, emu_dx);
 
-					int i;
-					uint8 *memory = &emu_get_memory8(emu_es, 0, emu_dx);
+					memory = &emu_get_memory8(emu_es, 0, emu_dx);
 					for (i = emu_bx; i < emu_bx + emu_cx; i++) {
 						emu_vga_dac[0].rgb[i].r = ((*memory++) & 0x3F) * 4;
 						emu_vga_dac[0].rgb[i].g = ((*memory++) & 0x3F) * 4;
@@ -801,4 +811,4 @@ void emu_int10()
 			fprintf(stderr, "[EMU] [ INT10:%02X ] Not Yet Implemented\n", emu_ah);
 			bios_uninit(1);
 	}
-};
+}

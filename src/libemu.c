@@ -26,9 +26,11 @@ uint8 emu_overlay = 0;
 
 void emu_make_crash_dump()
 {
+	FILE *fo;
+
 	fprintf(stderr, " Creating crash-dump ...\n");
 
-	FILE *fo = fopen("memory/crash.bin", "wb");
+	fo = fopen("memory/crash.bin", "wb");
 	if (fo == NULL) {
 		fprintf(stderr, "ERROR: failed to open memory/crash.bin\n");
 		fprintf(stderr, " Crashlog not created!\n");
@@ -79,6 +81,8 @@ void emu_make_crash_dump()
 void emu_init(int argc, char **argv)
 {
 	char memory_file[1024];
+	FILE *fp;
+
 	if (argc == 2) {
 		strcpy(memory_file, argv[1]);
 	} else {
@@ -86,7 +90,7 @@ void emu_init(int argc, char **argv)
 	}
 
 	/* Load the memory */
-	FILE *fp = fopen(memory_file, "rb");
+	fp = fopen(memory_file, "rb");
 	if (fp == NULL) {
 		fprintf(stderr, "[EMU] Failed to load memory file '%s'\n", memory_file);
 		exit(1);

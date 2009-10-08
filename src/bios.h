@@ -19,6 +19,8 @@ enum {
 
 	BIOS_VIDEO_EGA_INFO = 0x87,     /* 1 byte */
 	BIOS_VIDEO_EGA_SWITCHES = 0x88, /* 1 byte */
+
+	BIOS_END
 };
 
 extern void bios_init();

@@ -107,11 +107,15 @@ void emu_int(uint8 interrupt, uint16 ret_ip, uint32 from_ip)
 
 void emu_hard_link(uint16 cs, uint16 ip, void (*proc)())
 {
+	HardLink hl;
+	hl.cs   = cs;
+	hl.ip   = ip;
+	hl.proc = proc;
+
 	if (emu_hard_links.count == emu_hard_links.size) {
 		emu_hard_links.size += 4;
 		emu_hard_links.entries = (HardLink *)realloc(emu_hard_links.entries, sizeof(HardLink) * emu_hard_links.size);
 	}
-	HardLink hl = { cs, ip, proc };
 	emu_hard_links.entries[emu_hard_links.count++] = hl;
 }
 
@@ -153,14 +157,15 @@ void emu_hard_jump(uint16 new_cs, uint16 new_ip)
 {
 	uint16 ret_cs = emu_cs;
 	uint16 ret_ip = emu_ip;
+	uint16 deep = emu_deep;
+	int i;
+
 	emu_ip = new_ip;
 	emu_cs = new_cs;
 
-	uint16 deep = emu_deep;
 	emu_deep++;
 
 	/* Call the function */
-	int i;
 	for (i = 0; i < emu_hard_links.count; i++) {
 		if (emu_hard_links.entries[i].cs == emu_cs && emu_hard_links.entries[i].ip == emu_ip) {
 			emu_hard_links.entries[i].proc();
@@ -177,13 +182,13 @@ void emu_hard_call(uint16 new_cs, uint16 new_ip)
 	uint16 ret_last_cs = emu_last_cs;
 	uint16 ret_last_length = emu_last_length;
 	uint16 ret_last_crc = emu_last_crc;
+	uint16 ret_cs = emu_cs;
+	uint16 ret_ip = emu_ip;
+
 	emu_last_ip = 0x0;
 	emu_last_cs = 0x0;
 	emu_last_length = 0x0;
 	emu_last_crc = 0x0;
-
-	uint16 ret_cs = emu_cs;
-	uint16 ret_ip = emu_ip;
 
 	emu_cs = 0x0;
 	emu_ip = 0x0;
@@ -209,13 +214,13 @@ void emu_hard_int(uint8 interrupt)
 	uint16 ret_last_cs = emu_last_cs;
 	uint16 ret_last_length = emu_last_length;
 	uint16 ret_last_crc = emu_last_crc;
+	uint16 ret_cs = emu_cs;
+	uint16 ret_ip = emu_ip;
+
 	emu_last_ip = 0x0;
 	emu_last_cs = 0x0;
 	emu_last_length = 0x0;
 	emu_last_crc = 0x0;
-
-	uint16 ret_cs = emu_cs;
-	uint16 ret_ip = emu_ip;
 
 	emu_cs = 0x0;
 	emu_ip = 0x0;
