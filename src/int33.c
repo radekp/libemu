@@ -144,7 +144,7 @@ void emu_int33()
 
 			emu_mouse[0].callback_cs = emu_es;
 			emu_mouse[0].callback_ip = emu_dx;
-			emu_mouse[0].callback_mask = emu_cx;
+			emu_mouse[0].callback_mask = emu_cl;
 		} return;
 
 		case 0x24: /* GET INFORMATION */

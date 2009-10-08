@@ -133,7 +133,7 @@ void emu_init(int argc, char **argv)
 		emu_last_ip   = values[16];
 		emu_last_crc  = values[17];
 		emu_last_length = values[18];
-		emu_overlay   = values[19];
+		emu_overlay   = (uint8)values[19];
 	}
 
 	/* Load the memory */

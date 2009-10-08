@@ -371,7 +371,7 @@ void emu_mulws(uint16 *dest, int8 src) { emu_mulw(dest, src); }
 
 void emu_imulb(uint8 *dest, int8 val1, int8 val2) {
 	int16 res = val1 * val2;
-	*dest = res;
+	*dest = (int8)res;
 
 	emu_flags.cf = (res > 0xFF) ? 1 : 0;
 	emu_flags.of = (res > 0xFF) ? 1 : 0;
@@ -387,8 +387,7 @@ void emu_imulws(uint16 *dest, int16 val1, int8 val2) { emu_imulw(dest, val1, val
 void emu_imulub(uint8 *dest, int8 val) {
 	int16 res = (int8)emu_al * val;
 
-	emu_al = res;
-	emu_ah = res >> 8;
+	emu_ax = res;
 
 	/* It depends on how you define 'sign extended' .. but this keeps it DosBox compatible */
 #if 1
