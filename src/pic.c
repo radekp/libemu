@@ -11,7 +11,7 @@
 #else
 	#if !defined(__USE_POSIX)
 		#define __USE_POSIX
-	#endif /* __USE_POSIX */
+	#endif /* !__USE_POSIX */
 	#include <signal.h>
 #endif /* WIN32 */
 #include "types.h"
