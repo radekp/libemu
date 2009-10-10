@@ -5,19 +5,11 @@
 #include <string.h>
 #if defined(_MSC_VER)
 	#include <io.h>
-	#define close  _close
-	#define fileno _fileno
-	#define read   _read
-	#define write  _write
 	#define unlink _unlink
-	#define lseek  _lseek
 	#define access _access
 	#define F_OK   0
 	#define new    _new
 #else
-	#ifdef __STRICT_ANSI__
-		extern int fileno(FILE *);
-	#endif
 	#include <unistd.h>
 #endif /* _MSC_VER */
 #include "types.h"
@@ -36,7 +28,7 @@ MSVC_PACKED_END
 assert_compile(sizeof(MSB) == 16);
 
 /* DOS starts its filenumbers at 5, so simulate that by mapping them to system filenumbers */
-static int _int21_filemap[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static FILE *_int21_filemap[20] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 void emu_int21_getfile(uint16 segment, uint16 offset, char *buffer)
 {
@@ -241,7 +233,7 @@ void emu_int21()
 			}
 
 			/* Find the next open slot for the file number */
-			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
+			for (i = 5; i < 20; i++) if (_int21_filemap[i] == NULL) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
 				emu_ax = 0x04; /* TOO MANY OPEN FILES */
@@ -249,7 +241,7 @@ void emu_int21()
 				return;
 			}
 
-			_int21_filemap[i] = fileno(fp);
+			_int21_filemap[i] = fp;
 			emu_ax = i;
 		} return;
 
@@ -277,7 +269,7 @@ void emu_int21()
 			}
 
 			/* Find the next open slot for the file number */
-			for (i = 5; i < 20; i++) if (_int21_filemap[i] == 0) break;
+			for (i = 5; i < 20; i++) if (_int21_filemap[i] == NULL) break;
 			if (i == 20) {
 				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
 				emu_ax = 0x04; /* TOO MANY OPEN FILES */
@@ -285,7 +277,7 @@ void emu_int21()
 				return;
 			}
 
-			_int21_filemap[i] = fileno(fp);
+			_int21_filemap[i] = fp;
 			emu_ax = i;
 		} return;
 
@@ -300,8 +292,8 @@ void emu_int21()
 				return;
 			}
 
-			close(_int21_filemap[emu_bx]);
-			_int21_filemap[emu_bx] = 0;
+			fclose(_int21_filemap[emu_bx]);
+			_int21_filemap[emu_bx] = NULL;
 		} return;
 
 		case 0x3F: /* READ FILE - BX -> file handler, CX -> number of bytes, DS:DX -> buffer */
@@ -319,7 +311,7 @@ void emu_int21()
 				return;
 			}
 
-			res = read(_int21_filemap[emu_bx], buf, emu_cx);
+			res = fread(buf, 1, emu_cx, _int21_filemap[emu_bx]);
 
 			if (res < 0) {
 				emu_ax = 0x1E; /* READ FAULT */
@@ -344,7 +336,7 @@ void emu_int21()
 				return;
 			}
 
-			res = write(_int21_filemap[emu_bx], buf, emu_cx);
+			res = fwrite(buf, 1, emu_cx, _int21_filemap[emu_bx]);
 
 			if (res < 0) {
 				emu_ax = 0x1D; /* WRITE FAULT */
@@ -382,13 +374,15 @@ void emu_int21()
 				return;
 			}
 
-			res = lseek(_int21_filemap[emu_bx], pos, (emu_al == 0) ? SEEK_SET : ((emu_al == 1) ? SEEK_CUR : SEEK_END));
+			res = fseek(_int21_filemap[emu_bx], pos, (emu_al == 0) ? SEEK_SET : ((emu_al == 1) ? SEEK_CUR : SEEK_END));
 
 			if (res < 0) {
 				emu_ax = 0x19; /* SEEK ERROR */
 				emu_flags.cf = 1;
 				return;
 			}
+
+			res = ftell(_int21_filemap[emu_bx]);
 			emu_ax = res;
 			emu_dx = res >> 16;
 		} return;
