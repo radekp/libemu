@@ -7,7 +7,8 @@
 #  LIBS        - Which libs to include (SDL.dll for windows)
 #
 # Settings via parameters
-#  WIN32:=1    - To compile a .dll
+#  OSX:=1      - To compile on/for OSX
+#  WIN32:=1    - To compile on/for Windows
 
 LDFLAGS := $(LDFLAGS) -shared
 ifdef WIN32
@@ -18,10 +19,18 @@ LIB_EXTENSION := .so
 CFLAGS := $(CFLAGS) -fPIC
 endif
 ifndef SDL_INCLUDE
+ifdef OSX
+SDL_INCLUDE := /opt/local/include/SDL
+else
 SDL_INCLUDE := /usr/include/SDL
+endif
 endif
 ifndef LIBS
 LIBS :=
+endif
+
+ifdef OSX
+LIBS := $(LIBS) -lSDL -lncursesw -L/opt/local/lib
 endif
 
 CFLAGS := $(CFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Werror
