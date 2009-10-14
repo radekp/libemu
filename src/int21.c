@@ -56,6 +56,10 @@ void emu_int21_getfile(uint16 segment, uint16 offset, char *buffer)
 
 void emu_int21()
 {
+	if (_int21_filemap[0] == NULL) _int21_filemap[0] = stdin;
+	if (_int21_filemap[1] == NULL) _int21_filemap[1] = stdout;
+	if (_int21_filemap[2] == NULL) _int21_filemap[2] = stderr;
+
 	switch (emu_ah) {
 		case 0x06: /* DIRECT CONSOLE I/O - DL -> output char, or 0xFF for input request */
 		{          /* Return: AL -> input char, ZF -> input char ready */
@@ -305,7 +309,7 @@ void emu_int21()
 			emu_flags.cf = 0;
 			buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
-			if (emu_bx < 5 || emu_bx >= 20) {
+			if (emu_bx >= 20 || _int21_filemap[emu_bx] == NULL) {
 				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
@@ -330,7 +334,7 @@ void emu_int21()
 			emu_flags.cf = 0;
 			buf = &emu_get_memory8(emu_ds, emu_dx, 0);
 
-			if (emu_bx < 5 || emu_bx >= 20) {
+			if (emu_bx >= 20 || _int21_filemap[emu_bx] == NULL) {
 				emu_ax = 0x06; /* INVALID HANDLE */
 				emu_flags.cf = 1;
 				return;
