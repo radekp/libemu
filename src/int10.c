@@ -1,13 +1,13 @@
 /* $Id$ */
 
 #include <SDL.h>
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 	#include <ncurses.h>
-	#ifdef UNICODE
+	#if defined(UNICODE)
 		#include <locale.h>
 		#include <langinfo.h>
 	#endif /* UNICODE */
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 #include "types.h"
 #include "libemu.h"
 #include "bios.h"
@@ -30,7 +30,7 @@ static uint8 _colours_cga_0x04[2][2][4] = {
 	{ { 0, 22, 162, 182 }, { 0, 95, 235, 255 }, },
 };
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 static int _colours_text_0x03[] = {
 	COLOR_BLACK,
 	COLOR_BLUE,
@@ -42,7 +42,7 @@ static int _colours_text_0x03[] = {
 	COLOR_WHITE
 };
 
-#ifdef UNICODE
+#if defined(UNICODE)
 static unsigned char _is_utf8 = false;
 
 static char *_ncurses_acs_map_utf8[256] = {
@@ -122,7 +122,7 @@ static uint8 _ncurses_keymap[] = {
 	   0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, /* 0x120 - 0x12F */
 };
 
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 
 /* Partly copied from http://webster.cs.ucr.edu/AoA/DOS/pdf/apndxc.pdf */
 static uint8 _SDL_keymap[] = {
@@ -226,7 +226,7 @@ void emu_int10_uninit(uint8 wait)
 
 	_gfx_lock = 1;
 	if (_gfx_type == 1) {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 		if (wait) {
 			attr_set(0, 7, NULL);
 			mvaddstr(0, 0, "Press any key to exit ... ");
@@ -237,7 +237,7 @@ void emu_int10_uninit(uint8 wait)
 			getch();
 		}
 		endwin();
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 	}
 	if (_gfx_type == 2) {
 		SDL_Quit();
@@ -393,7 +393,7 @@ void emu_int10_gfx(int mode)
 	emu_int10_vga_dac_init();
 
 	if (_gfx_type == 1) {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 		int b, f;
 
 		initscr();
@@ -407,7 +407,7 @@ void emu_int10_gfx(int mode)
 		for (b = 0; b < 8; b++)
 			for (f = 0; f < 8; f++)
 				init_pair(f + b * 8, _colours_text_0x03[f], _colours_text_0x03[b]);
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 	}
 	if (_gfx_type == 2) {
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -452,7 +452,7 @@ void emu_int10_update()
 		case 0x03: /* 80x25 16 color text */
 			for (y = 0; y < 25; y++) {
 				for (x = 0; x < 160; x += 2) {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 					uint8 chr  = emu_get_memory8(0xB800, 0, y * 160 + x + 0);
 					int colour = emu_get_memory8(0xB800, 0, y * 160 + x + 1);
 					int fc     = (colour & 0x07);
@@ -464,7 +464,7 @@ void emu_int10_update()
 					if (colour & 0x80) attr |= A_BLINK;
 
 					attr_set(attr, fc + bc * 8, NULL);
-#ifdef UNICODE
+#if defined(UNICODE)
 					if (_is_utf8) {
 						mvaddstr(y, x / 2, _ncurses_acs_map_utf8[chr]);
 					} else
@@ -475,7 +475,7 @@ void emu_int10_update()
 					} else {
 						mvaddch(y, x / 2, chr);
 					}
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 				}
 			}
 			break;
@@ -592,7 +592,7 @@ void emu_int10_update()
 	}
 
 	if (_gfx_type == 1) {
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WITHOUT_NCURSES)
 		int i;
 		while ((i = getch()) != -1) {
 			if (i == 0x03) {
@@ -609,7 +609,7 @@ void emu_int10_update()
 			_int9_lastkey = i;
 		}
 		refresh();
-#endif /* WIN32 */
+#endif /* WIN32 / WITHOUT_NCURSES */
 	}
 	if (_gfx_type == 2) {
 		extern void emu_mouse_change_position(uint16 x, uint16 y);

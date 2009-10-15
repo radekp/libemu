@@ -30,8 +30,11 @@ LIBS :=
 endif
 
 ifdef OSX
-LIBS := $(LIBS) -lSDL -lncursesw -L/opt/local/lib
+LIBS := $(LIBS) -lSDL -L/opt/local/lib
 endif
+
+# OpenDUNE flag: we don't need ncurses
+CFLAGS := $(CFLAGS) -DWITHOUT_NCURSES
 
 CFLAGS := $(CFLAGS) -g -Wall -Wextra -Wno-unused-parameter -Werror
 CFLAGS := $(CFLAGS) -ansi -pedantic
