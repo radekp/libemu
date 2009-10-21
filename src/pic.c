@@ -160,7 +160,8 @@ void pic_timer_del(void (*callback)())
 void pic_suspend()
 {
 #if defined(WIN32)
-	DeleteTimerQueueTimer(NULL, _timer_handle, NULL);
+	if (_timer_handle != NULL) DeleteTimerQueueTimer(NULL, _timer_handle, NULL);
+	_timer_handle = NULL;
 #else
 	setitimer(ITIMER_REAL, NULL, NULL);
 #endif /* WIN32 */
