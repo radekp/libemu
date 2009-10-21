@@ -422,6 +422,8 @@ void emu_int10_gfx(int mode)
 			bios_uninit(1);
 		}
 
+		SDL_ShowCursor(SDL_DISABLE);
+
 		_gfx_screen = (uint8 *)_gfx_surface->pixels;
 		memset(_gfx_screen, 0, _gfx_width * _gfx_height);
 	}
