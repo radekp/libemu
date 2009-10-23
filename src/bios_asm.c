@@ -1,15 +1,6 @@
 /* $Id$ */
 
 #include <stdio.h>
-#if defined(_MSC_VER)
-	#include <windows.h>
-	#define usleep Sleep
-#else
-	#if !defined(__USE_BSD)
-		#define __USE_BSD
-	#endif /* !__USE_BSD */
-	#include <unistd.h>
-#endif /* _MSC_VER */
 #include "types.h"
 #include "libemu.h"
 #include "bios.h"
@@ -21,6 +12,7 @@
 #include "int16.h"
 #include "int1a.h"
 #include "int21.h"
+#include "int2a.h"
 #include "int2f.h"
 #include "int33.h"
 
@@ -260,6 +252,10 @@ void emu_syscall(uint8 value) {
 
 		case 0x21: /* DOS SERVICES */
 			emu_int21();
+			break;
+
+		case 0x2A: /* NETWORK SERVICES */
+			emu_int2a();
 			break;
 
 		case 0x2F: /* DOS MULTIPLEX */

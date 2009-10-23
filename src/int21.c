@@ -27,17 +27,48 @@ typedef struct MSB {
 MSVC_PACKED_END
 assert_compile(sizeof(MSB) == 16);
 
+MSVC_PACKED_BEGIN
+typedef struct FCB {
+	PACK uint8  driveno;
+	PACK char   filename[8];
+	PACK char   extension[3];
+	PACK uint16 current_block_no;
+	PACK uint16 logical_record_size;
+	PACK uint32 filesize;
+	PACK uint16 last_write_data;
+	PACK uint16 last_write_time;
+	PACK uint32 reserved1;
+	PACK uint32 reserved2;
+	PACK uint8  cur_record;
+	PACK uint32 random_access_record_number;
+} GCC_PACKED FCB;
+MSVC_PACKED_END
+assert_compile(sizeof(FCB) == 37);
+
+MSVC_PACKED_BEGIN
+typedef struct XFCB {
+	PACK uint8  ff;
+	PACK uint8  xfcb_reserved[5];
+	PACK uint8  attribute;
+	PACK FCB    fcb;
+} GCC_PACKED XFCB;
+MSVC_PACKED_END
+assert_compile(sizeof(XFCB) == 44);
+
 /* DOS starts its filenumbers at 5, so simulate that by mapping them to system filenumbers */
 static FILE *_int21_filemap[20] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
-void emu_int21_getfile(uint16 segment, uint16 offset, char *buffer)
+static uint16 _int21_DTA_segment = 0x0;
+static uint16 _int21_DTA_offset  = 0x0;
+
+void emu_int21_getfile(char *filename, int length, char *buffer)
 {
 	char tbuf[33];
 	char *buf = &tbuf[0];
 	char *c;
 
-	strncpy(buf, (char *)&emu_get_memory8(segment, offset, 0), 32);
-	buf[32] = '\0';
+	strncpy(buf, filename, length);
+	buf[length] = '\0';
 
 	/* Convert all names to lowercase */
 	c = buf;
@@ -67,12 +98,18 @@ void emu_int21()
 			printf("%c", emu_dl);
 		} return;
 
+		case 0x07: /* GET STDIN (ignore CTRL+BREAK) */
 		case 0x08: /* GET STDIN */
 		{          /* Return: AL -> key */
-			extern int emu_int9_getasciikey();
+			extern int emu_int9_key_getascii();
+			extern void emu_int9_key_wait();
 
-			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:08 ] GET STDIN\n");
-			emu_al = emu_int9_getasciikey();
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:%02X ] GET STDIN\n", emu_ah);
+
+			/* Wait for a key */
+			emu_int9_key_wait();
+
+			emu_al = emu_int9_key_getascii();
 			if (emu_al == 0x0A) emu_al = 0x0D;
 		} return;
 
@@ -93,10 +130,36 @@ void emu_int21()
 
 		case 0x0B: /* IS STDIN WAITING */
 		{          /* Return: AL -> 00 (no key waiting), FF (key waiting) */
-			extern int emu_int9_keywaiting();
+			extern int emu_int9_key_iswaiting();
 
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:0B ] IS STDIN WAITING\n");
-			emu_al = (emu_int9_keywaiting() > 0) ? 0xFF : 0x00;
+			emu_al = (emu_int9_key_iswaiting() > 0) ? 0xFF : 0x00;
+		} return;
+
+		case 0x0C: /* CLEAR KEYBOARD BUFFER AND INVOKE KEYBOARD FUNCTION - AL -> INT21,AL to call after clear */
+		{          /* Return: INT21,AL return value */
+			extern void emu_int9_key_flush();
+			uint8 old_ah = emu_ah;
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:0C ] CLEAR BUFFER AND INVOKE FUNCTION\n");
+
+			emu_int9_key_flush();
+
+			switch (emu_al) {
+				case 0x1:
+				case 0x6:
+				case 0x7:
+				case 0x8:
+				case 0xA:
+					break;
+				default:
+					fprintf(stderr, "[EMU] Tried to invoke function via INT21:0C which is not acceptable.\n");
+					return;
+			}
+
+			/* Now call INT21,AL */
+			emu_ah = emu_al;
+			emu_int21();
+			emu_ah = old_ah;
 		} return;
 
 		case 0x0E: /* SELECT DISK - DL -> drive number */
@@ -105,10 +168,127 @@ void emu_int21()
 			emu_al = 0x1A;
 		} return;
 
+		case 0x0F: /* OPEN FILE USING FCB - DS:DX -> pointer to unopened FSB */
+		{          /* Return: AL -> 00 (file opened), FF (file not opened) */
+			char filename[13];
+			char buf[33];
+			char *c;
+			FCB *fcb;
+			FILE *fp;
+			int i;
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:0F ] OPEN FILE USING FCB at %X:%X\n", emu_ds, emu_dx);
+
+			fcb = (FCB *)&emu_get_memory8(emu_ds, emu_dx, 0);
+			if (fcb->driveno == 0xFF) fcb = &((XFCB *)&emu_get_memory8(emu_ds, emu_dx, 0))->fcb;
+
+			/* Put the pieces of the filename together */
+			strncpy(filename, fcb->filename, 8);
+			c = strchr(filename, ' ');
+			if (c == NULL) c = &filename[8];
+			*c = '\0';
+			strcat(c, ".");
+			strncat(c, fcb->extension, 3);
+			c = strchr(filename, ' ');
+			if (c == NULL) c = &filename[12];
+			*c = '\0';
+
+			emu_int21_getfile(filename, 13, buf);
+
+			fp = fopen(buf, "rb");
+			if (fp == NULL) {
+				emu_al = 0xFF;
+				return;
+			}
+
+			/* Find the next open slot for the file number */
+			for (i = 5; i < 20; i++) if (_int21_filemap[i] == NULL) break;
+			if (i == 20) {
+				fprintf(stderr, "[EMU] ERROR: out of file descriptors\n");
+				emu_al = 0xFF;
+				return;
+			}
+
+			_int21_filemap[i] = fp;
+			fcb->reserved1 = i;
+
+			/* Get stats for the FCB */
+			fseek(fp, 0, SEEK_END);
+			fcb->filesize = ftell(fp);
+			fseek(fp, 0, SEEK_SET);
+
+			fcb->current_block_no = 0;
+			fcb->logical_record_size = 128;
+			fcb->cur_record = 0;
+			/* TODO -- Set create and last-write time */
+
+			emu_al = 0x00;
+		} return;
+
+		case 0x10: /* CLOSE FILE USING FCB - DS:DX -> pointer to opened FSB */
+		{
+			FCB *fcb;
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:10 ] CLOSE FILE USING FCB at %X:%X\n", emu_ds, emu_dx);
+
+			fcb = (FCB *)&emu_get_memory8(emu_ds, emu_dx, 0);
+			if (fcb->driveno == 0xFF) fcb = &((XFCB *)&emu_get_memory8(emu_ds, emu_dx, 0))->fcb;
+
+			if (fcb->reserved1 < 5 || fcb->reserved1 >= 20 || _int21_filemap[fcb->reserved1] == NULL) {
+				emu_al = 0xFF;
+				return;
+			}
+
+			fclose(_int21_filemap[fcb->reserved1]);
+			emu_al = 0x00;
+		} return;
+
+		case 0x14: /* SEQUENTIAL READ USING FCB - DS:DX -> pointer to opened FSB */
+		{
+			FCB *fcb;
+			int pos;
+			int res;
+
+			if (emu_debug_int) fprintf(stderr, "[EMU] [INT 21:14 ] SEQUANTIAL READ USING FCB at %X:%X\n", emu_ds, emu_dx);
+
+			fcb = (FCB *)&emu_get_memory8(emu_ds, emu_dx, 0);
+			if (fcb->driveno == 0xFF) fcb = &((XFCB *)&emu_get_memory8(emu_ds, emu_dx, 0))->fcb;
+
+			if (fcb->reserved1 < 5 || fcb->reserved1 >= 20 || _int21_filemap[fcb->reserved1] == NULL) {
+				emu_al = 1; /* END OF FILE, NO DATA */
+				return;
+			}
+
+			pos = (fcb->current_block_no * 128 + fcb->cur_record) * fcb->logical_record_size;
+			fseek(_int21_filemap[fcb->reserved1], pos, SEEK_SET);
+
+			res = fread(&emu_get_memory8(_int21_DTA_segment, _int21_DTA_offset, 0), 1, fcb->logical_record_size, _int21_filemap[fcb->reserved1]);
+			fcb->cur_record++;
+			if (fcb->cur_record == 128) {
+				fcb->current_block_no++;
+			}
+
+			if (res == fcb->logical_record_size) {
+				emu_al = 0; /* SUCCESS */
+			} else if (res == 0) {
+				emu_al = 1; /* END OF FILE, NO DATA */
+			} else {
+				emu_al = 3; /* END OF FILE, PARTIAL DATA */
+			}
+		} return;
+
 		case 0x19: /* GET CURRENT DEFAULT DRIVE */
 		{          /* Return: AL -> current default drive */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:19 ] GET CURRENT DEFAULT DRIVE\n");
 			emu_al = 2;
+		} return;
+
+		case 0x1A: /* SET DISK TRANSFER ADDRESS - DS:DX -> pointer to DTA */
+		{          /* Return: */
+			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:1A ] SET DISK TRANSFER ADDRESS to %X:%X\n", emu_ds, emu_dx);
+
+			_int21_DTA_segment = emu_ds;
+			_int21_DTA_offset  = emu_dx;
 		} return;
 
 		case 0x1B: /* GET ALLOCATION TABLE INFORMATION */
@@ -225,7 +405,7 @@ void emu_int21()
 
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3C ] CREATE FILE at %04X:%04X with attribute %d\n", emu_ds, emu_dx, emu_cx);
 			emu_flags.cf = 0;
-			emu_int21_getfile(emu_ds, emu_dx, buf);
+			emu_int21_getfile((char *)&emu_get_memory8(emu_ds, emu_dx, 0), 32, buf);
 
 			if (emu_cx != 0) fprintf(stderr, "[EMU] [ INT21:3C ] Requesting attributes '%x' for file which is not supported.\n", emu_cx);
 
@@ -258,7 +438,7 @@ void emu_int21()
 
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:3D ] OPEN FILE at %04X:%04X with mode %d\n", emu_ds, emu_dx, emu_al);
 			emu_flags.cf = 0;
-			emu_int21_getfile(emu_ds, emu_dx, buf);
+			emu_int21_getfile((char *)&emu_get_memory8(emu_ds, emu_dx, 0), 32, buf);
 
 			if ((emu_al & 0x1) == 0x1) mode[0] = 'w';
 			if ((emu_al & 0x2) == 0x2) mode[2] = '+';
@@ -356,7 +536,7 @@ void emu_int21()
 
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:41 ] DELETE FILE at %04X:%04X\n", emu_ds, emu_dx);
 			emu_flags.cf = 0;
-			emu_int21_getfile(emu_ds, emu_dx, buf);
+			emu_int21_getfile((char *)&emu_get_memory8(emu_ds, emu_dx, 0), 32, buf);
 
 			/* Delete the file */
 			unlink(buf);
@@ -397,7 +577,7 @@ void emu_int21()
 
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:43 ] GET/SET '%d' FILE ATTRIBUTES for %04X:%04X with '%X'\n", emu_al, emu_ds, emu_dx, emu_cx);
 			emu_flags.cf = 0;
-			emu_int21_getfile(emu_ds, emu_dx, buf);
+			emu_int21_getfile((char *)&emu_get_memory8(emu_ds, emu_dx, 0), 32, buf);
 
 			if (access(buf, F_OK) != 0) {
 				emu_ax = 0x02; /* FILE NOT FOUND */

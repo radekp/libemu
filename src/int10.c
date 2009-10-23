@@ -153,9 +153,21 @@ static uint8 _int9_pos = 0;
 static uint8 _int9_used = 0;
 static int _int9_lastkey = 0;
 
-int emu_int9_keywaiting()
+int emu_int9_key_iswaiting()
 {
 	return _int9_used;
+}
+
+void emu_int9_key_flush()
+{
+	_int9_used = 0;
+}
+
+void emu_int9_key_wait()
+{
+	while (!emu_int9_key_iswaiting()) {
+		SDL_Delay(1);
+	}
 }
 
 uint8 emu_io_read_060()
@@ -170,7 +182,7 @@ uint8 emu_io_read_060()
 	return key;
 }
 
-int emu_int9_getasciikey()
+int emu_int9_key_getascii()
 {
 	emu_io_read_060();
 	emu_io_read_060();
@@ -735,6 +747,13 @@ void emu_int10()
 		case 0x10: /* GET/SET PALETTE */
 		{
 			switch (emu_al) {
+				case 0x02: /* SET ALL PALETTE REGISTERS - ES:DX -> pointer to 17 byte table representing 16 palette registers and border color register  */
+				{          /* Return: */
+					if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:10:02 ] SET ALL PALETTE REGISTERS at %X:%X\n", emu_es, emu_dx);
+					fprintf(stderr, "[EMU] [ INT10:10:02 ] Not Yet Implemented (ignored)\n");
+					/* TODO -- Implement this */
+				} return;
+
 				case 0x12: /* SET DAC BLOCK - BX -> first colour, CX -> number of colours, ES:DX -> table */
 				{          /* Return: */
 					int i;
