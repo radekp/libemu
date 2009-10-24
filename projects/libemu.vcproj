@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\int2a.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\int2f.c"
 				>
 			</File>
@@ -247,6 +251,10 @@
 			</File>
 			<File
 				RelativePath="..\src\int21.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\int2a.h"
 				>
 			</File>
 			<File
