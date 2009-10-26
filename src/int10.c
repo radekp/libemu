@@ -25,6 +25,8 @@ static int _gfx_type   = 0;
 static int _gfx_palette_update = 0;
 static int _gfx_lock   = 0;
 
+char *emu_caption = "16bit to C Emulator";
+
 static uint8 _colours_cga_0x04[2][2][4] = {
 	{ { 0, 20, 160, 168 }, { 0, 93, 233, 253 }, },
 	{ { 0, 22, 162, 182 }, { 0, 95, 235, 255 }, },
@@ -461,7 +463,7 @@ void emu_int10_gfx(int mode)
 			bios_uninit(1);
 		}
 
-		SDL_WM_SetCaption("16bit to C Emulator", "");
+		SDL_WM_SetCaption(emu_caption, "");
 		_gfx_surface = SDL_SetVideoMode(_gfx_width, _gfx_height, 8, SDL_SWSURFACE | SDL_HWPALETTE);
 		if (_gfx_surface == NULL) {
 			fprintf(stderr, "[EMU] [ INT10:00 ] Could not set resolution: %s\n", SDL_GetError());
