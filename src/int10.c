@@ -197,7 +197,6 @@ static void _int9_keyadd(uint8 key)
 	_int9_used++;
 
 	if (emu_flags.inf) emu_hard_int(0x9);
-	if (emu_flags.inf) emu_hard_int(0x9);
 }
 
 uint8 emu_io_read_3D9()
