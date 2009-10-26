@@ -199,6 +199,40 @@ static void _int9_keyadd(uint8 key)
 	if (emu_flags.inf) emu_hard_int(0x9);
 }
 
+void emu_io_write_3D8(uint8 value)
+{
+	switch (value & 0x13) { /* 0001 0111, ignore bits for unused(2), blink, enable video signal */
+		case 0x00: /* 40x25 color text */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 1;
+			break;
+
+		case 0x01: /* 80x25 color text */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 3;
+			break;
+
+		case 0x04: /* 40x25 bw text */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 0;
+			break;
+
+		case 0x05: /* 80x25 bw text */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 2;
+			break;
+
+		case 0x02: /* CGA 320x200x4 */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 4;
+			break;
+
+		case 0x06: /* CGA 320x200x1 */
+			emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE) = 5;
+			break;
+
+		default:
+			fprintf(stderr, "[EMU] [ OUTB:3D8:%02X ] Not Yet Implemented\n", value & 0x13);
+			bios_uninit(1);
+			return;
+	}
+}
+
 uint8 emu_io_read_3D9()
 {
 	return 0x08; /* TODO -- Find the correct value */
@@ -361,6 +395,7 @@ void emu_int10_gfx(int mode)
 			break;
 
 		case 0x04:
+		case 0x05:
 			_gfx_width  = 640;
 			_gfx_height = 400;
 			_gfx_pal    = 0;
@@ -493,7 +528,7 @@ void emu_int10_update()
 			}
 			break;
 
-		case 0x04: /* CGA 320x200x2 (double sized) */
+		case 0x04: /* CGA 320x200x4 (double sized) */
 			for (y = 0; y < 200; y++) {
 				for (x = 0; x < 320; x += 4) {
 					uint8 data;

@@ -14,4 +14,5 @@ extern uint8 emu_io_read_3DA();
 extern void  emu_io_write_3C7(uint8 value);
 extern void  emu_io_write_3C8(uint8 value);
 extern void  emu_io_write_3C9(uint8 value);
+extern void  emu_io_write_3D8(uint8 value);
 extern void  emu_io_write_3D9(uint8 value);

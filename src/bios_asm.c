@@ -41,7 +41,7 @@ void emu_inb(uint8 *dest, uint16 port)
 		case 0x060: *dest = emu_io_read_060(); return;
 		case 0x061: *dest = 0xFF; return; /* TODO */
 		case 0x071: *dest = 0xFF; return; /* TODO -- No clue */
-		case 0x201: *dest = 0xFF; return; /* TODO -- No clue */
+		case 0x201: *dest = 0x00; return; /* Joystick read/write port. 0x0? = all switches open, 0x?0 is analog measurement ready */
 		case 0x228: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x22A: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x22B: *dest = 0xFF; return; /* TODO -- No clue */
@@ -146,7 +146,7 @@ void emu_outb(uint16 port, uint8 value) {
 		case 0x3CF: return; /* TODO -- VGA Register stuff */
 		case 0x3D4: return; /* TODO -- Colour Display stuff */
 		case 0x3D5: return; /* TODO -- Colour Display stuff */
-		case 0x3D8: return; /* TODO -- Mode Control */
+		case 0x3D8: emu_io_write_3D8(value); return;
 		case 0x3D9: emu_io_write_3D9(value); return;
 		case 0x3F2: return; /* TODO -- Floppy Disk stuff */
 		default:
