@@ -240,6 +240,7 @@ void emu_int21()
 			}
 
 			fclose(_int21_filemap[fcb->reserved1]);
+			_int21_filemap[fcb->reserved1] = NULL;
 			emu_al = 0x00;
 		} return;
 
