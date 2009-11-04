@@ -816,7 +816,7 @@ void emu_int10()
 		{          /* Return: CX -> byte per character, DL -> rows - 1, ES:BP -> pointer to table */
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT10:11:%02X ] CHARACTER GENERATOR ROUTINE\n", emu_al);
 			/* TODO -- Implement this */
-		}
+		} return;
 
 		case 0x12: /* VIDEO SUBSYSTEM CONFIGURATION */
 		{
