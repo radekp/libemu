@@ -128,7 +128,7 @@ static uint8 _ncurses_keymap[] = {
 
 /* Partly copied from http://webster.cs.ucr.edu/AoA/DOS/pdf/apndxc.pdf */
 static uint8 _SDL_keymap[] = {
-	   0,    0,    0,    0,    0,    0,    0,    0, 0x0E,    0,    0,    0,    0, 0x1C,    0,    0, /*  0x00 -  0x0F */
+	   0,    0,    0,    0,    0,    0,    0,    0, 0x0E, 0x0F,    0,    0,    0, 0x1C,    0,    0, /*  0x00 -  0x0F */
 	   0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0x01,    0,    0,    0,    0, /*  0x10 -  0x1F */
 	0x39,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0, 0x0C, 0x33,    0, /*  0x20 -  0x2F */
 	0x0B, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A,    0,    0,    0,    0,    0,    0, /*  0x30 -  0x3F */
