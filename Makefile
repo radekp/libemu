@@ -10,12 +10,20 @@
 #  OSX:=1      - To compile on/for OSX
 #  WIN32:=1    - To compile on/for Windows
 
+ifdef OSX
+LDFLAGS := $(LDFLAGS) -dynamiclib -Wl,-single_module
+else
 LDFLAGS := $(LDFLAGS) -shared
+endif
 ifdef WIN32
 LIB_EXTENSION := .dll
 CFLAGS := $(CFLAGS) -DWIN32
 else
+ifdef OSX
+LIB_EXTENSION := .dylib
+else
 LIB_EXTENSION := .so
+endif
 CFLAGS := $(CFLAGS) -fPIC
 endif
 ifndef SDL_INCLUDE
