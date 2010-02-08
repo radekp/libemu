@@ -27,6 +27,40 @@ uint8 emu_io_read_005()
 	return last;
 }
 
+static uint8 mpu_data = 0x00;
+static uint8 mpu_ctrl = 0x80;
+
+/* MPU DATA */
+uint8 emu_io_read_330()
+{
+	uint8 ret = mpu_data;
+	mpu_data = 0x00;
+	mpu_ctrl &= 0x3F;
+	mpu_ctrl |= 0x80;
+	return ret;
+}
+
+void emu_io_write_330(uint8 value)
+{
+	if (emu_debug_int) fprintf(stderr, "[EMU] [ OUTB:0x330] VALUE: 0x%02X\n", value);
+}
+
+/* MPU STATUS/COMMAND */
+uint8 emu_io_read_331()
+{
+	return mpu_ctrl;
+}
+
+void emu_io_write_331(uint8 value)
+{
+	if (emu_debug_int) fprintf(stderr, "[EMU] [ OUTB:0x331] VALUE: 0x%02X\n", value);
+	if (value == 0xFF) {
+		mpu_data = 0xFE;
+		mpu_ctrl &= 0x3F;
+		mpu_ctrl |= 0x40;
+	}
+}
+
 /* IN */
 
 void emu_inb(uint8 *dest, uint16 port)
@@ -56,6 +90,8 @@ void emu_inb(uint8 *dest, uint16 port)
 		case 0x2ED: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x2FD: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x318: *dest = 0xFF; return; /* TODO -- No clue */
+		case 0x330: *dest = emu_io_read_330(); return;
+		case 0x331: *dest = emu_io_read_331(); return;
 		case 0x378: *dest = 0xFF; return; /* TODO -- Parellel port */
 		case 0x388: *dest = 0xFF; return; /* TODO -- 8273 stuff */
 		case 0x3B5: *dest = 0xFF; return; /* TODO -- Monochrome Display stuff */
@@ -128,6 +164,8 @@ void emu_outb(uint16 port, uint8 value) {
 		case 0x289: return; /* TODO -- No clue */
 		case 0x318: return; /* TODO -- No clue */
 		case 0x319: return; /* TODO -- No clue */
+		case 0x330: emu_io_write_330(value); return;
+		case 0x331: emu_io_write_331(value); return;
 		case 0x378: return; /* TODO -- Parallel port */
 		case 0x388: return; /* TODO -- 8273 stuff */
 		case 0x389: return; /* TODO -- 8273 stuff */
