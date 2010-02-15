@@ -4,6 +4,7 @@
 #include "types.h"
 #include "libemu.h"
 #include "bios.h"
+#include "mpu.h"
 #include "pic.h"
 #include "timer.h"
 #include "int10.h"
@@ -25,40 +26,6 @@ uint8 emu_io_read_005()
 	else last = 0x00;
 
 	return last;
-}
-
-static uint8 mpu_data = 0x00;
-static uint8 mpu_ctrl = 0x80;
-
-/* MPU DATA */
-uint8 emu_io_read_330()
-{
-	uint8 ret = mpu_data;
-	mpu_data = 0x00;
-	mpu_ctrl &= 0x3F;
-	mpu_ctrl |= 0x80;
-	return ret;
-}
-
-void emu_io_write_330(uint8 value)
-{
-	if (emu_debug_int) fprintf(stderr, "[EMU] [ OUTB:0x330] VALUE: 0x%02X\n", value);
-}
-
-/* MPU STATUS/COMMAND */
-uint8 emu_io_read_331()
-{
-	return mpu_ctrl;
-}
-
-void emu_io_write_331(uint8 value)
-{
-	if (emu_debug_int) fprintf(stderr, "[EMU] [ OUTB:0x331] VALUE: 0x%02X\n", value);
-	if (value == 0xFF) {
-		mpu_data = 0xFE;
-		mpu_ctrl &= 0x3F;
-		mpu_ctrl |= 0x40;
-	}
 }
 
 /* IN */

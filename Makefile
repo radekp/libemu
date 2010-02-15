@@ -37,8 +37,17 @@ ifndef LIBS
 LIBS :=
 endif
 
+ifdef WIN32
+LIBS := $(LIBS) -lSDL -lwinmm
+endif
+
 ifdef OSX
 LIBS := $(LIBS) -lSDL -L/opt/local/lib
+endif
+
+ifdef ALSA
+LIBS := $(LIBS) -lasound
+CFLAGS := $(CFLAGS) -DMPU_ALSA
 endif
 
 # OpenDUNE flag: we don't need ncurses

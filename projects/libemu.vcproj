@@ -210,6 +210,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\mpu.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\mpu_alsa.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\mpu_none.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\mpu_win32.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\pic.c"
 				>
 			</File>
@@ -287,6 +303,10 @@
 			</File>
 			<File
 				RelativePath="..\src\libemu_register.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\mpu.h"
 				>
 			</File>
 			<File

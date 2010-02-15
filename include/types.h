@@ -55,4 +55,8 @@ assert_compile(sizeof( int16) == 2);
 assert_compile(sizeof(uint32) == 4);
 assert_compile(sizeof( int32) == 4);
 
+typedef unsigned char bool;
+#define false 0
+#define true 1
+
 #endif /* TYPES_H */
