@@ -13,6 +13,7 @@
 		#define __USE_POSIX
 	#endif /* !__USE_POSIX */
 	#include <signal.h>
+	#include <string.h>
 #endif /* WIN32 */
 #include "types.h"
 #include "pic.h"
@@ -107,6 +108,8 @@ void pic_init()
 		pic_sa.sa_flags   = 0;
 		sigaction(SIGALRM, &pic_sa, NULL);
 	}
+
+	if (getenv("LD_PRELOAD") != NULL && strstr(getenv("LD_PRELOAD"), "libjit.so") != NULL) return;
 #endif /* WIN32 */
 	pic_resume();
 }
