@@ -11,6 +11,7 @@
 #include "mpu.h"
 #include "pic.h"
 #include "timer.h"
+#include "xms.h"
 
 void bios_init()
 {
@@ -19,6 +20,7 @@ void bios_init()
 	timer_init();
 	emu_int33_init();
 	mpu_init();
+	xms_init();
 
 	/* Start the graphical part */
 	if (getenv("TOC_TEST") == NULL) emu_int10_gfx(emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE));
@@ -30,6 +32,7 @@ void bios_uninit(int exitCode)
 	timer_uninit();
 	emu_int10_uninit(1);
 	mpu_uninit();
+	xms_uninit();
 
 	/* Create a crash dump if there was an error */
 	if (exitCode != 0) emu_make_crash_dump();

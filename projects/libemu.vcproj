@@ -237,6 +237,10 @@
 				RelativePath="..\src\timer.c"
 				>
 			</File>
+			<File
+				RelativePath="..\src\xms.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="headers"
@@ -319,6 +323,10 @@
 			</File>
 			<File
 				RelativePath="..\include\types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\xms.h"
 				>
 			</File>
 		</Filter>

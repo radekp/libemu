@@ -16,6 +16,7 @@
 #include "int2a.h"
 #include "int2f.h"
 #include "int33.h"
+#include "xms.h"
 
 uint8 emu_io_read_005()
 {
@@ -270,6 +271,11 @@ void emu_syscall(uint8 value) {
 		case 0x33: /* MOUSE */
 			emu_int33();
 			break;
+
+		case 0xFA: /* Jump to XMS handler, DO NOT USE */
+		case 0xFB: /* XMS handler */
+			emu_xms();
+			return; /* This is not an interrupt, so don't recover the flags */
 
 		default:
 			fprintf(stderr, "[EMU] [ INT%02X ] Not Yet Implemented\n", value);
