@@ -109,7 +109,7 @@ void pic_init()
 		sigaction(SIGALRM, &pic_sa, NULL);
 	}
 
-	/*if (getenv("LD_PRELOAD") != NULL && strstr(getenv("LD_PRELOAD"), "libjit.so") != NULL) return; */
+	if (getenv("LD_PRELOAD") != NULL && strstr(getenv("LD_PRELOAD"), "libjit.so") != NULL) return;
 #endif /* WIN32 */
 	pic_resume();
 }
