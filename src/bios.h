@@ -14,6 +14,8 @@ enum {
 
 	BIOS_VIDEO_MODE = 0x49,         /* 1 byte */
 
+	BIOS_VIDEO_CONTROLLER = 0x63,   /* 2 bytes */
+
 	BIOS_COUNTER = 0x6C,            /* 4 bytes */
 	BIOS_COUNTER_OVERFLOW = 0x70,   /* 1 byte */
 

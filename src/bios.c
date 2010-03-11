@@ -22,6 +22,8 @@ void bios_init()
 	mpu_init();
 	xms_init();
 
+	emu_get_memory16(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_CONTROLLER) = 0x3D4;
+
 	/* Start the graphical part */
 	if (getenv("TOC_TEST") == NULL) emu_int10_gfx(emu_get_memory8(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_MODE));
 }
