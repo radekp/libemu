@@ -17,6 +17,8 @@
 #endif /* WIN32 */
 #include "types.h"
 #include "pic.h"
+#include "libemu.h"
+#include "libemu_call.h"
 
 typedef struct PICNode {
 	uint32 usec_left;
@@ -37,6 +39,9 @@ static int _pic_node_size  = 0;
 static uint32 _pic_last_sec;
 static uint32 _pic_last_usec;
 const uint32 _pic_speed    = 20000; /* Our PIC runs at 50Hz */
+static uint16 _pic_irq_mask    = 0xFFFF;
+static uint16 _pic_irq_request = 0x0;
+static bool _pic_irq_service   = 0x0;
 
 void _pic_run()
 {
@@ -73,6 +78,23 @@ void _pic_run()
 			node->callback();
 		}
 		node->usec_left -= delta;
+	}
+
+	/* Handle interrupt requests */
+	if (_pic_irq_service == 0 && emu_flags.inf) {
+		for (i = 0; i < 16; i++) {
+			if (_pic_irq_request & (1 << i)) {
+				_pic_irq_request &= ~(1 << i);
+				_pic_irq_service |= (1 << i);
+				if (i > 7) {
+					_pic_irq_service |= (1 << 2);
+					emu_hard_int(i + 0x68);
+				} else {
+					emu_hard_int(i + 0x08);
+				}
+				break;
+			}
+		}
 	}
 
 	pic_running = 0;
@@ -203,4 +225,27 @@ uint32 pic_get_usec()
 	gettimeofday(&tv, NULL);
 	return tv.tv_usec;
 #endif /* _MSC_VER */
+}
+
+void pic_irq_trigger(uint8 irq)
+{
+	if (_pic_irq_mask & (1 << irq)) return;
+	if (irq > 7 && _pic_irq_mask & (1 << 2)) return;
+	_pic_irq_request |= (1 << irq);
+}
+
+void pic_irq_mask_set(bool pic1, uint8 mask)
+{
+	_pic_irq_mask = pic1 ? (_pic_irq_mask & (0xFF00)) | mask : (mask << 8) | (_pic_irq_mask & 0xFF);
+}
+
+uint8 pic_irq_mask_get(bool pic1)
+{
+	return pic1 ? _pic_irq_mask & 0xFF : _pic_irq_mask >> 8;
+}
+
+void pic_irq_command(bool pic1, uint8 command)
+{
+	if (command != 0x20) return;
+	_pic_irq_service &= pic1 ? 0xFF00 : 0xFF;
 }

@@ -29,8 +29,6 @@ uint8 emu_io_read_005()
 	return last;
 }
 
-static uint16 _irq_mask = 0xFFFF;
-
 static uint8 _read_status  = 0x00;
 static uint8 _read_data    = 0x00;
 static uint8 _write_status = 0x00;
@@ -64,7 +62,7 @@ void emu_io_write_22C(uint8 value)
 				fprintf(stderr, "length = %04X\n", length);
 				cmd = 0xFF;
 				/* Fake IRQ7 */
-				if ((_irq_mask & (1 << 7)) == 0) emu_hard_int(0xF);
+				pic_irq_trigger(7);
 			}
 			break;
 
@@ -103,13 +101,13 @@ void emu_inb(uint8 *dest, uint16 port)
 		case 0x003: *dest = 0x00; return; /* TODO -- DMA */
 		case 0x005: *dest = emu_io_read_005(); return; /* TODO */
 		case 0x006: *dest = emu_io_read_005(); return; /* TODO */
-		case 0x021: *dest = _irq_mask & 0xFF; return; /* TODO -- IRQ */
+		case 0x021: *dest = pic_irq_mask_get(true); return; /* PIC1 Port2 */
 		case 0x040: *dest = emu_io_read_040(); return;
 		case 0x042: *dest = emu_io_read_042(); return;
 		case 0x060: *dest = emu_io_read_060(); return;
 		case 0x061: *dest = 0xFF; return; /* TODO */
 		case 0x071: *dest = 0xFF; return; /* TODO -- No clue */
-		case 0x0A1: *dest = (_irq_mask >> 8) & 0xFF; return; /* TODO -- IRQ */
+		case 0x0A1: *dest = pic_irq_mask_get(false); return; /* PIC2 Port2 */
 		case 0x201: *dest = 0x00; return; /* Joystick read/write port. 0x0? = all switches open, 0x?0 is analog measurement ready */
 		case 0x226: *dest = 0xFF; return; /* TODO -- Sound Blaster DSP Reset */
 		case 0x228: *dest = 0xFF; return; /* TODO -- No clue */
@@ -182,8 +180,8 @@ void emu_outb(uint16 port, uint8 value) {
 		case 0x00A: return; /* TODO -- DMA */
 		case 0x00B: return; /* TODO -- DMA */
 		case 0x00C: return; /* TODO -- DMA */
-		case 0x020: return; /* TODO */
-		case 0x021: _irq_mask = (_irq_mask & 0xFF00) | value; return; /* TODO -- IRQ */
+		case 0x020: pic_irq_command(true, value); return; /* PIC1 Port1 */
+		case 0x021: pic_irq_mask_set(true, value); return; /* PIC1 Port2 */
 		case 0x040: emu_io_write_040(value); return;
 		case 0x042: emu_io_write_042(value); return;
 		case 0x043: emu_io_write_043(value); return;
@@ -191,7 +189,8 @@ void emu_outb(uint16 port, uint8 value) {
 		case 0x070: return; /* TODO -- No clue */
 		case 0x071: return; /* TODO -- No clue */
 		case 0x083: return; /* TODO -- DMA */
-		case 0x0A1: _irq_mask = value << 8 | (_irq_mask & 0xFF); return; /* TODO -- IRQ */
+		case 0x0A0: pic_irq_command(false, value); return; /* PIC2 Port1 */
+		case 0x0A1: pic_irq_mask_set(false, value); return; /* PIC2 Port2 */
 		case 0x201: return; /* TODO -- No clue */
 		case 0x226: emu_io_write_226(value); return; /* TODO -- Sound Blaster DSP Reset */
 		case 0x227: return; /* TODO -- No clue */

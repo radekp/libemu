@@ -248,15 +248,15 @@ void emu_io_write_3D9(uint8 value)
 }
 uint8 emu_io_read_3DA()
 {
-	static uint8 flip = 0;
+	static uint16 flip = 0;
 	uint8 value;
 
 	flip++;
-	if (flip == 20) flip = 0;
+	if (flip == 20000) flip = 0;
 
 	value = 0;
-	if (flip > 10) value |= 0x01;
-	if (flip > 18) value |= 0x08;
+	if (flip > 10000) value |= 0x01;
+	if (flip > 18000) value |= 0x08;
 
 	return value;
 }
