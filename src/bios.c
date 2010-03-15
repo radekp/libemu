@@ -9,6 +9,7 @@
 #include "int10.h"
 #include "int33.h"
 #include "mpu.h"
+#include "pcm.h"
 #include "pic.h"
 #include "timer.h"
 #include "xms.h"
@@ -20,6 +21,7 @@ void bios_init()
 	timer_init();
 	emu_int33_init();
 	mpu_init();
+	pcm_init();
 	xms_init();
 
 	emu_get_memory16(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_CONTROLLER) = 0x3D4;

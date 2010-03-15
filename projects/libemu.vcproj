@@ -226,6 +226,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\pcm.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\pic.c"
 				>
 			</File>
@@ -311,6 +315,10 @@
 			</File>
 			<File
 				RelativePath="..\src\mpu.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\pcm.h"
 				>
 			</File>
 			<File

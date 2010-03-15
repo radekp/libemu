@@ -5,6 +5,7 @@
 #include "libemu.h"
 #include "bios.h"
 #include "mpu.h"
+#include "pcm.h"
 #include "pic.h"
 #include "timer.h"
 #include "int10.h"
@@ -29,76 +30,13 @@ uint8 emu_io_read_005()
 	return last;
 }
 
-static uint8 _read_status  = 0x00;
-static uint8 _read_data    = 0x00;
-static uint8 _write_status = 0x00;
-
-uint8 emu_io_read_22A()
-{
-	_read_status &= ~0x80;
-	return _read_data;
-}
-
-uint8 emu_io_read_22E()
-{
-	return _read_status;
-}
-
-uint8 emu_io_read_22C()
-{
-	return _write_status;
-}
-
-void emu_io_write_22C(uint8 value)
-{
-	static uint8 cmd     = 0xFF;
-	static uint8 count   = 0x00;
-	static uint16 length = 0x00;
-
-	switch (cmd) {
-		case 0x14:
-			length += value << ((2 - count--) * 8);
-			if (count == 0) {
-				fprintf(stderr, "length = %04X\n", length);
-				cmd = 0xFF;
-				/* Fake IRQ7 */
-				pic_irq_trigger(7);
-			}
-			break;
-
-		default:
-			switch (value) {
-				case 0x14:
-					cmd = value;
-					length = 0;
-					count = 2;
-					break;
-
-				default:
-					break;
-			}
-	}
-}
-
-void emu_io_write_226(uint8 value)
-{
-	if (value == 0x01) {
-		_read_status  = 0x00;
-		_read_data    = 0x00;
-		_write_status = 0x00;
-	} else if (value == 0x00) {
-		_read_data    = 0xAA;
-		_read_status |= 0x80;
-	}
-}
-
 /* IN */
 
 void emu_inb(uint8 *dest, uint16 port)
 {
 	if (emu_debug_int) fprintf(stderr, "[EMU] [ INB:%02X ]\n", port);
 	switch (port) {
-		case 0x003: *dest = 0x00; return; /* TODO -- DMA */
+		case 0x003: *dest = emu_io_read_003(); return; /* DMA1 */
 		case 0x005: *dest = emu_io_read_005(); return; /* TODO */
 		case 0x006: *dest = emu_io_read_005(); return; /* TODO */
 		case 0x021: *dest = pic_irq_mask_get(true); return; /* PIC1 Port2 */
@@ -109,12 +47,12 @@ void emu_inb(uint8 *dest, uint16 port)
 		case 0x071: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x0A1: *dest = pic_irq_mask_get(false); return; /* PIC2 Port2 */
 		case 0x201: *dest = 0x00; return; /* Joystick read/write port. 0x0? = all switches open, 0x?0 is analog measurement ready */
-		case 0x226: *dest = 0xFF; return; /* TODO -- Sound Blaster DSP Reset */
+		case 0x226: *dest = 0xFF; return; /* Sound Blaster DSP Reset */
 		case 0x228: *dest = 0xFF; return; /* TODO -- No clue */
-		case 0x22A: *dest = emu_io_read_22A(); return; /* TODO -- Sound Blaster DSP Read */
+		case 0x22A: *dest = emu_io_read_22A(); return; /* Sound Blaster DSP Read */
 		case 0x22B: *dest = 0xFF; return; /* TODO -- No clue */
-		case 0x22C: *dest = emu_io_read_22C(); return; /* TODO -- Sound Blaster DSP Write (Command/Data), DSP write-buffer status (Bit 7) */
-		case 0x22E: *dest = emu_io_read_22E(); return; /* TODO -- Sound Blaster DSP Read-buffer status (Bit 7), DSP interrupt acknowledge */
+		case 0x22C: *dest = emu_io_read_22C(); return; /* Sound Blaster DSP Write (Command/Data), DSP write-buffer status (Bit 7) */
+		case 0x22E: *dest = emu_io_read_22E(); return; /* Sound Blaster DSP Read-buffer status (Bit 7), DSP interrupt acknowledge */
 		case 0x23B: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x24B: *dest = 0xFF; return; /* TODO -- No clue */
 		case 0x25B: *dest = 0xFF; return; /* TODO -- No clue */
@@ -175,8 +113,8 @@ void emu_outb(uint16 port, uint8 value) {
 	switch (port) {
 		case 0x000: return; /* TODO */
 		case 0x001: return; /* TODO */
-		case 0x002: return; /* TODO -- DMA */
-		case 0x003: return; /* TODO -- DMA */
+		case 0x002: emu_io_write_002(value); return; /* DMA1 */
+		case 0x003: emu_io_write_003(value); return; /* DMA1 */
 		case 0x00A: return; /* TODO -- DMA */
 		case 0x00B: return; /* TODO -- DMA */
 		case 0x00C: return; /* TODO -- DMA */
@@ -188,16 +126,16 @@ void emu_outb(uint16 port, uint8 value) {
 		case 0x061: return; /* TODO -- Sound? */
 		case 0x070: return; /* TODO -- No clue */
 		case 0x071: return; /* TODO -- No clue */
-		case 0x083: return; /* TODO -- DMA */
+		case 0x083: emu_io_write_083(value); return; /* DMA1 */
 		case 0x0A0: pic_irq_command(false, value); return; /* PIC2 Port1 */
 		case 0x0A1: pic_irq_mask_set(false, value); return; /* PIC2 Port2 */
 		case 0x201: return; /* TODO -- No clue */
-		case 0x226: emu_io_write_226(value); return; /* TODO -- Sound Blaster DSP Reset */
+		case 0x226: emu_io_write_226(value); return; /* Sound Blaster DSP Reset */
 		case 0x227: return; /* TODO -- No clue */
 		case 0x228: return; /* TODO -- No clue */
 		case 0x229: return; /* TODO -- No clue */
 		case 0x22A: return; /* TODO -- No clue */
-		case 0x22C: emu_io_write_22C(value); return; /* TODO -- Sound Blaster DSP Write (Command/Data), DSP write-buffer status (Bit 7) */
+		case 0x22C: emu_io_write_22C(value); return; /* Sound Blaster DSP Write (Command/Data), DSP write-buffer status (Bit 7) */
 		case 0x237: return; /* TODO -- No clue */
 		case 0x247: return; /* TODO -- No clue */
 		case 0x257: return; /* TODO -- No clue */
