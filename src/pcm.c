@@ -21,6 +21,7 @@ static uint8 _read_status  = 0x00;
 static uint8 _read_data    = 0x00;
 static uint8 _write_status = 0x00;
 static DMAData _dma;
+static bool _silence = false;
 
 uint8 emu_io_read_22A()
 {
@@ -43,15 +44,26 @@ void pcm_sdl_callback(void *userdata, Uint8 *stream, int len)
 	if (_dma.count == 0xFFFF) return;
 
 	if (len <= _dma.count + 1) {
-		memcpy(stream, &emu_get_memory8(_dma.page << 12, _dma.offset, 0), len);
+		if (_silence) {
+			memset(stream, 0, len);
+		} else {
+			memcpy(stream, &emu_get_memory8(_dma.page << 12, _dma.offset, 0), len);
+		}
 		_dma.count -= len;
 		_dma.offset += len;
 	} else {
-		memcpy(stream, &emu_get_memory8(_dma.page << 12, _dma.offset, 0), _dma.count + 1);
+		if (_silence) {
+			memset(stream, 0, _dma.count + 1);
+		} else {
+			memcpy(stream, &emu_get_memory8(_dma.page << 12, _dma.offset, 0), _dma.count + 1);
+		}
 		_dma.count = 0xFFFF;
 	}
 
-	if (_dma.count == 0xFFFF) pic_irq_trigger(7);
+	if (_dma.count == 0xFFFF) {
+		_silence = false;
+		pic_irq_trigger(7);
+	}
 }
 
 void emu_io_write_22C(uint8 value)
@@ -88,6 +100,17 @@ void emu_io_write_22C(uint8 value)
 			cmd = 0xFF;
 		} break;
 
+		case 0x80:
+			data = high ? (data | (value << 8)) : value;
+			if (high) {
+				_dma.count = data;
+				_silence = true;
+				SDL_PauseAudio(0);
+				cmd = 0xFF;
+			}
+			high ^= true;
+			break;
+
 		default:
 			switch (value) {
 				case 0x14:
@@ -98,7 +121,12 @@ void emu_io_write_22C(uint8 value)
 
 				case 0x40:
 					cmd = value;
+					break;
+
+				case 0x80:
+					cmd = value;
 					data = 0;
+					high = false;
 					break;
 
 				case 0xD0:
