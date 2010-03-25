@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #if defined(_MSC_VER)
 	#include <io.h>
 	#define unlink _unlink
@@ -318,21 +319,31 @@ void emu_int21()
 
 		case 0x2A: /* GET DATE */
 		{          /* Return: AL -> day of week, CX -> year, DH -> month, DL -> day */
+			struct tm *tm;
+			time_t t;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:2A ] GET DATE\n");
-			/* TODO -- Give the real date */
-			emu_al = 0;
-			emu_cx = 2000;
-			emu_dh = 1;
-			emu_dl = 1;
+			time(&t);
+			tm = localtime(&t);
+
+			emu_al = tm->tm_wday;
+			emu_cx = tm->tm_year + 1900;
+			emu_dh = tm->tm_mon + 1;
+			emu_dl = tm->tm_mday;
 		} return;
 
 		case 0x2C: /* GET TIME */
 		{          /* Return: CH -> hour, CL -> minutes, DH -> seconds, DL -> msecs */
+			struct tm *tm;
+			time_t t;
+
 			if (emu_debug_int) fprintf(stderr, "[EMU] [ INT21:2C ] GET TIME\n");
-			/* TODO -- Give the real time */
-			emu_ch = 0;
-			emu_cl = 0;
-			emu_dh = 0;
+			time(&t);
+			tm = localtime(&t);
+
+			emu_ch = tm->tm_hour;
+			emu_cl = tm->tm_min;
+			emu_dh = tm->tm_sec;
 			emu_dl = 0;
 		} return;
 
