@@ -64,6 +64,7 @@ extern uint16 emu_last_ip;
 extern uint16 emu_last_cs;
 extern uint16 emu_last_length;
 extern uint16 emu_last_crc;
+extern uint8 emu_mpu;
 
 extern void emu_data_monitor(uint16 s, uint16 o, uint16 d, int l);
 extern void emu_make_crash_dump();

@@ -20,7 +20,7 @@ void bios_init()
 	pic_init();
 	timer_init();
 	emu_int33_init();
-	mpu_init();
+	if (emu_mpu) mpu_init();
 	pcm_init();
 	xms_init();
 
