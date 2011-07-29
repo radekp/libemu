@@ -688,10 +688,12 @@ void emu_int10_update()
 						break;
 
 					case SDL_MOUSEBUTTONDOWN:
-						emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 1);
+						if (event.button.button == SDL_BUTTON_LEFT)  emu_mouse_change_button(1, 1);
+						if (event.button.button == SDL_BUTTON_RIGHT) emu_mouse_change_button(0, 1);
 						break;
 					case SDL_MOUSEBUTTONUP:
-						emu_mouse_change_button((event.button.button == SDL_BUTTON_LEFT) ? 1 : 0, 0);
+						if (event.button.button == SDL_BUTTON_LEFT)  emu_mouse_change_button(1, 0);
+						if (event.button.button == SDL_BUTTON_RIGHT) emu_mouse_change_button(0, 0);
 						break;
 
 					case SDL_KEYDOWN:
