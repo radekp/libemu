@@ -17,7 +17,7 @@
 void bios_init()
 {
 	/* Start up our PIC and timer */
-	pic_init();
+	if (emu_pic) pic_init();
 	timer_init();
 	emu_int33_init();
 	if (emu_mpu) mpu_init();
@@ -32,10 +32,10 @@ void bios_init()
 
 void bios_uninit(int exitCode)
 {
-	pic_uninit();
+	if (emu_pic) pic_uninit();
 	timer_uninit();
 	emu_int10_uninit(1);
-	mpu_uninit();
+	if (emu_mpu) mpu_uninit();
 	xms_uninit();
 
 	/* Create a crash dump if there was an error */

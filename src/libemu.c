@@ -24,6 +24,7 @@ uint8 emu_debug_int = 0;
 uint32 emu_deep = 0;
 uint8 emu_overlay = 0;
 uint8 emu_mpu = 1;
+uint8 emu_pic = 1;
 
 void emu_make_crash_dump()
 {
