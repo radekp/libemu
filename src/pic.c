@@ -80,6 +80,13 @@ void _pic_run()
 		node->usec_left -= delta;
 	}
 
+	pic_running = 0;
+}
+
+void pic_run_irq()
+{
+	int i;
+
 	/* Handle interrupt requests */
 	if (_pic_irq_service == 0 && emu_flags.inf) {
 		for (i = 0; i < 16; i++) {
@@ -96,8 +103,6 @@ void _pic_run()
 			}
 		}
 	}
-
-	pic_running = 0;
 }
 
 #if defined(WIN32)
@@ -134,6 +139,8 @@ void pic_init()
 	if (getenv("LD_PRELOAD") != NULL && strstr(getenv("LD_PRELOAD"), "libjit.so") != NULL) return;
 #endif /* WIN32 */
 	pic_resume();
+
+	pic_timer_add(pic_run_irq, 0);
 }
 
 void pic_uninit()
