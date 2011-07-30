@@ -8,7 +8,7 @@
 
 void pcm_init()
 {
-	SDL_InitSubSystem(SDL_INIT_AUDIO);
+	if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) emu_pcm = 0;
 }
 
 typedef struct DMAData {
@@ -72,6 +72,8 @@ void emu_io_write_22C(uint8 value)
 	static bool high    = false;
 	static uint16 data  = 0x0000;
 	static int old_freq = 0;
+
+	if (!emu_pcm) return;
 
 	switch (cmd) {
 		case 0x14:
@@ -160,6 +162,8 @@ void emu_io_write_002(uint8 value)
 {
 	static bool high = false;
 
+	if (!emu_pcm) return;
+
 	SDL_LockAudio();
 	_dma.offset = high ? _dma.offset | (value << 8) : value;
 	SDL_UnlockAudio();
@@ -170,6 +174,8 @@ void emu_io_write_002(uint8 value)
 void emu_io_write_003(uint8 value)
 {
 	static bool high = false;
+
+	if (!emu_pcm) return;
 
 	SDL_LockAudio();
 	_dma.count = high ? _dma.count | (value << 8) : value;
@@ -183,6 +189,8 @@ uint8 emu_io_read_003()
 	static bool high = false;
 	uint8 value = 0;
 
+	if (!emu_pcm) return value;
+
 	SDL_LockAudio();
 	value = high ? (_dma.count >> 8) : (_dma.count & 0xFF);
 	SDL_UnlockAudio();
@@ -194,6 +202,8 @@ uint8 emu_io_read_003()
 
 void emu_io_write_083(uint8 value)
 {
+	if (!emu_pcm) return;
+
 	SDL_LockAudio();
 	_dma.page = value;
 	SDL_UnlockAudio();

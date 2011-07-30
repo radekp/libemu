@@ -21,7 +21,7 @@ void bios_init()
 	timer_init();
 	emu_int33_init();
 	if (emu_mpu) mpu_init();
-	pcm_init();
+	if (emu_pcm) pcm_init();
 	xms_init();
 
 	emu_get_memory16(BIOS_MEMORY_PAGE, 0, BIOS_VIDEO_CONTROLLER) = 0x3D4;
